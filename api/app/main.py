@@ -24,33 +24,39 @@ from sqlalchemy import text
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup actions
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        statements = [
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS legal_name VARCHAR(255);",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS description TEXT;",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS cover_image_url TEXT;",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS website VARCHAR(255);",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS tax_identifier VARCHAR(100);",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS registration_number VARCHAR(100);",
-            "ALTER TABLE companies ALTER COLUMN logo_url TYPE TEXT;",
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS company_id UUID;",
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS address_id UUID;",
-            "ALTER TABLE addresses ADD COLUMN IF NOT EXISTS landmark VARCHAR(255);",
-            "ALTER TABLE addresses ADD COLUMN IF NOT EXISTS address_line_2 VARCHAR(255);",
-        ]
-        for stmt in statements:
-            try:
-                await conn.execute(text(stmt))
-            except Exception:
-                pass
-    
-    async with AsyncSessionLocal() as session:
-        await AuthService.seed_super_admin(session)
+    try:
+        async with async_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+            statements = [
+                "ALTER TABLE companies ADD COLUMN IF NOT EXISTS legal_name VARCHAR(255);",
+                "ALTER TABLE companies ADD COLUMN IF NOT EXISTS description TEXT;",
+                "ALTER TABLE companies ADD COLUMN IF NOT EXISTS cover_image_url TEXT;",
+                "ALTER TABLE companies ADD COLUMN IF NOT EXISTS website VARCHAR(255);",
+                "ALTER TABLE companies ADD COLUMN IF NOT EXISTS tax_identifier VARCHAR(100);",
+                "ALTER TABLE companies ADD COLUMN IF NOT EXISTS registration_number VARCHAR(100);",
+                "ALTER TABLE companies ALTER COLUMN logo_url TYPE TEXT;",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS company_id UUID;",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS address_id UUID;",
+                "ALTER TABLE addresses ADD COLUMN IF NOT EXISTS landmark VARCHAR(255);",
+                "ALTER TABLE addresses ADD COLUMN IF NOT EXISTS address_line_2 VARCHAR(255);",
+            ]
+            for stmt in statements:
+                try:
+                    await conn.execute(text(stmt))
+                except Exception:
+                    pass
+        
+        async with AsyncSessionLocal() as session:
+            await AuthService.seed_super_admin(session)
+    except Exception as e:
+        logging.error(f"Lifespan DB setup warning: {e}")
         
     yield
     # Shutdown actions
-    await async_engine.dispose()
+    try:
+        await async_engine.dispose()
+    except Exception:
+        pass
 
 
 app = FastAPI(
