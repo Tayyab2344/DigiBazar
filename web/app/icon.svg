@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" width="100%" height="100%">
+  <defs>
+    <!-- Handle Gradient -->
+    <linearGradient id="chHandleGrad" x1="200" y1="120" x2="312" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0066FF" />
+      <stop offset="100%" stop-color="#001F66" />
+    </linearGradient>
+
+    <!-- Top Cyan Blue Curve -->
+    <linearGradient id="chCyanBlue" x1="130" y1="140" x2="420" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00D2FF" />
+      <stop offset="60%" stop-color="#0066FF" />
+      <stop offset="100%" stop-color="#0033CC" />
+    </linearGradient>
+
+    <!-- Outer Golden Orange Pink Purple Ribbon -->
+    <linearGradient id="chOuterSwoosh" x1="300" y1="120" x2="250" y2="450" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00C8FF" />
+      <stop offset="25%" stop-color="#0066FF" />
+      <stop offset="50%" stop-color="#FF9900" />
+      <stop offset="75%" stop-color="#FF0066" />
+      <stop offset="100%" stop-color="#7700FF" />
+    </linearGradient>
+
+    <!-- Bottom Purple Swoosh -->
+    <linearGradient id="chBottomSwoosh" x1="120" y1="360" x2="380" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00A2FF" />
+      <stop offset="30%" stop-color="#6600FF" />
+      <stop offset="70%" stop-color="#E60077" />
+      <stop offset="100%" stop-color="#FF5500" />
+    </linearGradient>
+
+    <!-- Speed Lines Gradients -->
+    <linearGradient id="chSpeedOrange" x1="60" y1="210" x2="115" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFB700" />
+      <stop offset="100%" stop-color="#FF5500" />
+    </linearGradient>
+
+    <linearGradient id="chSpeedPink" x1="80" y1="250" x2="168" y2="250" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF0088" />
+      <stop offset="100%" stop-color="#FF0044" />
+    </linearGradient>
+
+    <linearGradient id="chSpeedCyan" x1="38" y1="290" x2="146" y2="290" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00E5FF" />
+      <stop offset="100%" stop-color="#0077FF" />
+    </linearGradient>
+
+    <linearGradient id="chSpeedPurple" x1="100" y1="330" x2="154" y2="330" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C000FF" />
+      <stop offset="100%" stop-color="#7700FF" />
+    </linearGradient>
+  </defs>
+
+  <!-- Bag Handle at Top -->
+  <path d="M 206 138 C 206 65, 306 65, 306 138" stroke="url(#chHandleGrad)" stroke-width="26" stroke-linecap="round" fill="none" />
+
+  <!-- Outer Bag 'D' Loop (Continuous Dynamic Sculpted Path) -->
+  <path d="
+    M 145 152
+    C 230 115, 370 120, 415 175
+    C 470 240, 465 340, 395 405
+    C 335 460, 210 455, 120 425
+    C 190 380, 270 365, 335 340
+    C 390 320, 405 270, 380 215
+    C 350 160, 230 180, 172 208
+    Z
+  " fill="url(#chOuterSwoosh)" />
+
+  <!-- Central Dark Blue Core Background -->
+  <path d="
+    M 172 208
+    C 220 185, 330 180, 355 220
+    C 380 260, 365 310, 320 335
+    C 260 365, 190 375, 120 425
+    C 160 330, 165 240, 172 208
+    Z
+  " fill="#000F35" />
+
+  <!-- Additional Blue Cap on Top Bag -->
+  <path d="
+    M 145 152
+    C 210 115, 360 122, 405 168
+    C 425 188, 395 210, 345 205
+    C 260 195, 175 190, 145 152
+    Z
+  " fill="url(#chCyanBlue)" />
+
+  <!-- Bottom Purple Pink Swoosh Highlight -->
+  <path d="
+    M 120 425
+    C 195 455, 330 460, 395 405
+    C 435 370, 445 320, 410 375
+    C 370 435, 240 440, 120 425
+    Z
+  " fill="url(#chBottomSwoosh)" />
+
+  <!-- Speed Capsules (Left Side) -->
+  <!-- Top Orange Capsule -->
+  <rect x="64" y="204" width="50" height="18" rx="9" fill="url(#chSpeedOrange)" />
+  <!-- 2nd Pink Capsule -->
+  <rect x="84" y="242" width="84" height="18" rx="9" fill="url(#chSpeedPink)" />
+  <!-- 3rd Cyan Capsule -->
+  <rect x="38" y="280" width="108" height="18" rx="9" fill="url(#chSpeedCyan)" />
+  <!-- 4th Purple Capsule -->
+  <rect x="100" y="318" width="54" height="18" rx="9" fill="url(#chSpeedPurple)" />
+
+  <!-- Center White Shopping Cart Icon -->
+  <g transform="translate(182, 198) scale(1.05)" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Basket Handle & Main Frame -->
+    <path d="M 12 18 L 30 18 L 48 76 L 122 76 L 138 32 L 36 32" />
+    <!-- Grid Wire Crosses -->
+    <line x1="42" y1="46" x2="132" y2="46" />
+    <line x1="45" y1="60" x2="126" y2="60" />
+    <line x1="66" y1="32" x2="60" y2="76" />
+    <line x1="94" y1="32" x2="90" y2="76" />
+    <!-- Front Wheel -->
+    <circle cx="56" cy="98" r="10" fill="#FFFFFF" stroke="none" />
+    <!-- Rear Wheel -->
+    <circle cx="112" cy="98" r="10" fill="#FFFFFF" stroke="none" />
+  </g>
+</svg>
