@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Store, ShieldCheck, Mail, Phone, MapPin, Sparkles } from "lucide-react";
+import { ShoppingBag, ShieldCheck, Mail, Phone, MapPin, Sparkles } from "lucide-react";
 
 export const Footer: React.FC = () => {
   return (
@@ -12,18 +12,17 @@ export const Footer: React.FC = () => {
           
           {/* Column 1: DigiBazar Brand */}
           <div className="lg:col-span-1 space-y-3">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-lg shadow-sm">
-                <Store className="w-5 h-5 text-white" />
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <ShoppingBag className="w-7 h-7 text-white stroke-[2.2] group-hover:text-amber-500 transition-colors" />
+              <div className="flex flex-col leading-none">
+                <span className="font-extrabold text-2xl tracking-tight text-white">
+                  Digi<span className="font-light text-slate-300">Bazar</span>
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium tracking-tight mt-0.5">
+                  Digital Bazar for Modern Commerce
+                </span>
               </div>
-              <span className="font-extrabold text-xl text-white tracking-tight">
-                Digi<span className="text-blue-500">Bazar</span>
-              </span>
             </Link>
-
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Pakistan&apos;s modern digital marketplace.
-            </p>
           </div>
 
           {/* Column 2: Shop */}
