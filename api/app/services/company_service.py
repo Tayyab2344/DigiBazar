@@ -378,14 +378,26 @@ class CompanyService:
                 detail="Sale start date must be before sale end date.",
             )
 
-        # 2. Slug & SKU generation
-        slug = data.slug.strip() if data.slug else await CompanyService.generate_unique_slug(db, data.name)
-        sku = data.sku.strip().upper() if data.sku else await CompanyService.generate_unique_sku(db, data.name)
+        # 2. Slug & SKU generation with automatic conflict resolution
+        if data.slug and data.slug.strip():
+            candidate_slug = generate_slug_base(data.slug.strip())
+            slug_check = await db.execute(select(Product).where(Product.slug == candidate_slug))
+            if slug_check.scalar_one_or_none():
+                slug = await CompanyService.generate_unique_slug(db, data.name)
+            else:
+                slug = candidate_slug
+        else:
+            slug = await CompanyService.generate_unique_slug(db, data.name)
 
-        # Check SKU uniqueness
-        sku_check = await db.execute(select(Product).where(Product.sku == sku))
-        if sku_check.scalar_one_or_none():
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"SKU '{sku}' already exists.")
+        if data.sku and data.sku.strip():
+            candidate_sku = data.sku.strip().upper()
+            sku_check = await db.execute(select(Product).where(Product.sku == candidate_sku))
+            if sku_check.scalar_one_or_none():
+                sku = await CompanyService.generate_unique_sku(db, candidate_sku)
+            else:
+                sku = candidate_sku
+        else:
+            sku = await CompanyService.generate_unique_sku(db, data.name)
 
         # Check category existence if provided
         category_id = data.category_id
@@ -446,6 +458,9 @@ class CompanyService:
         if data.product_type == ProductType.VARIABLE and data.variants:
             for idx, var in enumerate(data.variants):
                 var_sku = var.sku.strip().upper() if var.sku else f"{sku}-V{idx+1}"
+                v_check = await db.execute(select(ProductVariant).where(ProductVariant.sku == var_sku))
+                if v_check.scalar_one_or_none():
+                    var_sku = f"{sku}-V{idx+1}-{secrets.token_hex(2).upper()}"
                 v_entity = ProductVariant(
                     product_id=product.id,
                     sku=var_sku,
