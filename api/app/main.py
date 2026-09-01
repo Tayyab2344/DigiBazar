@@ -87,13 +87,32 @@ app.add_middleware(
 )
 
 
+def add_cors_headers(request: Request, response: JSONResponse) -> JSONResponse:
+    origin = request.headers.get("origin")
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    else:
+        response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logging.error(f"Unhandled Exception on {request.url}: {exc}", exc_info=True)
-    return JSONResponse(
+    resp = JSONResponse(
         status_code=500,
         content={"detail": "Internal Server Error", "error": str(exc)},
     )
+    return add_cors_headers(request, resp)
+
+
+@app.options("/{full_path:path}")
+async def options_fallback_handler(full_path: str, request: Request):
+    resp = JSONResponse(content={"status": "ok"})
+    return add_cors_headers(request, resp)
 
 # Include routers
 app.include_router(public_router)

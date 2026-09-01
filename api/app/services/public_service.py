@@ -177,128 +177,146 @@ class PublicService:
 
     @staticmethod
     async def get_homepage_data(session: AsyncSession) -> HomepageResponse:
-        # 1. Hero slides
         slides = await PublicService.get_hero_slides()
+        end_time_iso = datetime.now(timezone.utc).isoformat()
 
-        # 2. Categories - Seed default marketplace categories if DB has fewer than 6
-        cat_stmt = select(Category).where(Category.is_active == True).order_by(Category.sort_order).limit(12)
-        res_cats = await session.execute(cat_stmt)
-        categories_db = list(res_cats.scalars().all())
-
-        if len(categories_db) < 6:
-            default_cats = [
-                ("Electronics", "electronics", "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=80"),
-                ("Fashion", "fashion", "https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80"),
-                ("Home & Living", "home-living", "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=80"),
-                ("Beauty", "beauty", "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=80"),
-                ("Sports", "sports", "https://images.unsplash.com/photo-1517649763962-0c623266010b?w=400&q=80"),
-                ("Groceries", "groceries", "https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80"),
-                ("Accessories", "accessories", "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80"),
-                ("Mobile & Gadgets", "mobile-gadgets", "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80"),
-            ]
-            for idx, (name, slug, img) in enumerate(default_cats):
-                existing = next((c for c in categories_db if c.slug == slug), None)
-                if not existing:
-                    new_c = Category(
-                        id=uuid.uuid4(),
-                        name=name,
-                        slug=slug,
-                        image_url=img,
-                        sort_order=idx,
-                        is_active=True,
-                    )
-                    session.add(new_c)
-            await session.commit()
-
+        try:
+            # 2. Categories
+            cat_stmt = select(Category).where(Category.is_active == True).order_by(Category.sort_order).limit(12)
             res_cats = await session.execute(cat_stmt)
             categories_db = list(res_cats.scalars().all())
 
-        categories = [
-            PublicCategoryRead(
-                id=c.id,
-                name=c.name,
-                slug=c.slug,
-                description=c.description,
-                image_url=c.image_url,
-                parent_id=c.parent_id,
-                product_count=0,
-            )
-            for c in categories_db
-        ]
+            if len(categories_db) < 6:
+                default_cats = [
+                    ("Electronics", "electronics", "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=80"),
+                    ("Fashion", "fashion", "https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80"),
+                    ("Home & Living", "home-living", "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=80"),
+                    ("Beauty", "beauty", "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=80"),
+                    ("Sports", "sports", "https://images.unsplash.com/photo-1517649763962-0c623266010b?w=400&q=80"),
+                    ("Groceries", "groceries", "https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80"),
+                    ("Accessories", "accessories", "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80"),
+                    ("Mobile & Gadgets", "mobile-gadgets", "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80"),
+                ]
+                for idx, (name, slug, img) in enumerate(default_cats):
+                    existing = next((c for c in categories_db if c.slug == slug), None)
+                    if not existing:
+                        new_c = Category(
+                            id=uuid.uuid4(),
+                            name=name,
+                            slug=slug,
+                            image_url=img,
+                            sort_order=idx,
+                            is_active=True,
+                        )
+                        session.add(new_c)
+                try:
+                    await session.commit()
+                    res_cats = await session.execute(cat_stmt)
+                    categories_db = list(res_cats.scalars().all())
+                except Exception:
+                    await session.rollback()
 
-        # 3. Fetch products with relations
-        prod_stmt = (
-            select(Product)
-            .options(
-                selectinload(Product.product_images),
-                selectinload(Product.product_variants),
-                selectinload(Product.product_attributes),
-            )
-            .limit(40)
-        )
-        res_prods = await session.execute(prod_stmt)
-        products_db = res_prods.scalars().all()
-
-        # Fetch companies and map
-        comp_stmt = select(Company)
-        res_comps = await session.execute(comp_stmt)
-        companies = list(res_comps.scalars().all())
-        companies_map = {c.id: c for c in companies}
-        categories_map = {c.id: c for c in categories_db}
-
-        all_cards = []
-        for p in products_db:
-            c = companies_map.get(p.company_id)
-            cat = categories_map.get(p.category_id)
-            if c:
-                all_cards.append(product_to_card(p, c, cat))
-
-        # Flash deals (has sale price)
-        flash_deals = [card for card in all_cards if card.discount_percentage > 0][:5]
-
-        # Featured products
-        featured = [card for card in all_cards if card.rating >= 4.0][:5]
-        if not featured:
-            featured = all_cards[:5]
-
-        # Popular products (trending)
-        popular = sorted(all_cards, key=lambda x: (x.rating, x.review_count), reverse=True)[:5]
-
-        # New arrivals
-        new_arrivals = sorted(all_cards, key=lambda x: x.created_at, reverse=True)[:5]
-
-        # Top stores with product counts
-        top_companies = []
-        for c in companies[:6]:
-            prod_cnt = sum(1 for p in products_db if p.company_id == c.id)
-            top_companies.append(
-                PublicCompanyRead(
+            categories = [
+                PublicCategoryRead(
                     id=c.id,
                     name=c.name,
                     slug=c.slug,
-                    logo_url=c.logo_url,
-                    cover_image_url=c.cover_image_url,
-                    description=c.description or "Official verified store on DigiBazar.",
-                    rating=4.8,
-                    review_count=124,
-                    is_verified=(c.status == CompanyStatus.ACTIVE),
-                    product_count=max(prod_cnt, 12),
-                    sales_count=100,
+                    description=c.description,
+                    image_url=c.image_url,
+                    parent_id=c.parent_id,
+                    product_count=0,
                 )
+                for c in categories_db
+            ]
+
+            # 3. Fetch products with relations
+            prod_stmt = (
+                select(Product)
+                .options(
+                    selectinload(Product.product_images),
+                    selectinload(Product.product_variants),
+                    selectinload(Product.product_attributes),
+                )
+                .limit(40)
             )
+            res_prods = await session.execute(prod_stmt)
+            products_db = res_prods.scalars().all()
 
-        end_time_iso = datetime.now(timezone.utc).isoformat()
+            # Fetch companies and map
+            comp_stmt = select(Company)
+            res_comps = await session.execute(comp_stmt)
+            companies = list(res_comps.scalars().all())
+            companies_map = {c.id: c for c in companies}
+            categories_map = {c.id: c for c in categories_db}
 
-        return HomepageResponse(
-            hero_slides=slides,
-            categories=categories,
-            flash_deals=flash_deals,
-            flash_deals_end_time=end_time_iso,
-            featured_products=featured,
-            popular_products=popular,
-            top_companies=top_companies,
-            new_arrivals=new_arrivals,
-        )
+            all_cards = []
+            for p in products_db:
+                c = companies_map.get(p.company_id)
+                cat = categories_map.get(p.category_id)
+                if c:
+                    all_cards.append(product_to_card(p, c, cat))
+
+            # Flash deals (has sale price)
+            flash_deals = [card for card in all_cards if card.discount_percentage > 0][:5]
+
+            # Featured products
+            featured = [card for card in all_cards if card.rating >= 4.0][:5]
+            if not featured:
+                featured = all_cards[:5]
+
+            # Popular products (trending)
+            popular = sorted(all_cards, key=lambda x: (x.rating, x.review_count), reverse=True)[:5]
+
+            # New arrivals
+            new_arrivals = sorted(all_cards, key=lambda x: x.created_at, reverse=True)[:5]
+
+            # Top stores with product counts
+            top_companies = []
+            for c in companies[:6]:
+                prod_cnt = sum(1 for p in products_db if p.company_id == c.id)
+                top_companies.append(
+                    PublicCompanyRead(
+                        id=c.id,
+                        name=c.name,
+                        slug=c.slug,
+                        logo_url=c.logo_url,
+                        cover_image_url=c.cover_image_url,
+                        description=c.description or "Official verified store on DigiBazar.",
+                        rating=4.8,
+                        review_count=124,
+                        is_verified=(c.status == CompanyStatus.ACTIVE),
+                        product_count=max(prod_cnt, 12),
+                        sales_count=100,
+                    )
+                )
+
+            return HomepageResponse(
+                hero_slides=slides,
+                categories=categories,
+                flash_deals=flash_deals,
+                flash_deals_end_time=end_time_iso,
+                featured_products=featured,
+                popular_products=popular,
+                top_companies=top_companies,
+                new_arrivals=new_arrivals,
+            )
+        except Exception as e:
+            try:
+                await session.rollback()
+            except Exception:
+                pass
+            import logging
+            logging.error(f"Error fetching homepage data from DB: {e}", exc_info=True)
+            return HomepageResponse(
+                hero_slides=slides,
+                categories=[],
+                flash_deals=[],
+                flash_deals_end_time=end_time_iso,
+                featured_products=[],
+                popular_products=[],
+                top_companies=[],
+                new_arrivals=[],
+            )
 
     @staticmethod
     async def search_suggestions(session: AsyncSession, q: str) -> SearchSuggestionResponse:
