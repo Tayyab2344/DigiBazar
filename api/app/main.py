@@ -120,4 +120,5 @@ async def root():
 
 @app.get("/health", tags=["health"])
 async def health_check():
+    """Health check endpoint for Vercel deployment monitoring."""
     return {"status": "healthy"}
