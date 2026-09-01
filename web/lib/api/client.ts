@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
 
 export class ApiError extends Error {
   status: number;
@@ -16,9 +16,10 @@ export async function apiClient<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const url = endpoint.startsWith("http")
     ? endpoint
-    : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+    : `${API_BASE_URL}${cleanEndpoint}`;
 
   const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
 

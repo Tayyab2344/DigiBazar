@@ -37,7 +37,11 @@ class Settings(BaseSettings):
     SUPER_ADMIN_PHONE: str = "+10000000000"
 
     # CORS settings
-    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    CORS_ORIGINS: Union[List[str], str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://digi-bazar.vercel.app",
+    ]
 
     # Integrations
     STRIPE_SECRET_KEY: str = ""
