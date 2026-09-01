@@ -22,7 +22,7 @@ export const Footer: React.FC = () => {
             </Link>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              Pakistan's modern digital marketplace.
+              Pakistan&apos;s modern digital marketplace.
             </p>
           </div>
 

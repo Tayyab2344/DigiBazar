@@ -517,7 +517,7 @@ export const Header: React.FC = () => {
             className="bg-amber-50 text-amber-900 border border-amber-200/80 px-3 py-1 rounded-md text-xs font-bold font-sans flex items-center gap-1.5 hover:bg-amber-100 transition-colors shrink-0"
           >
             <Flame className="w-3.5 h-3.5 text-amber-600" />
-            <span>Today's Deals</span>
+            <span>Today&apos;s Deals</span>
           </Link>
         </div>
       </div>

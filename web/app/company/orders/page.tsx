@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CompanyShell } from "@/components/company/CompanyShell";
@@ -18,7 +18,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-export default function CompanyOrdersPage() {
+function CompanyOrdersContent() {
   const searchParams = useSearchParams();
   const statusParam = searchParams.get("status");
 
@@ -171,5 +171,13 @@ export default function CompanyOrdersPage() {
         </div>
       </div>
     </CompanyShell>
+  );
+}
+
+export default function CompanyOrdersPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-xs text-slate-400">Loading orders...</div>}>
+      <CompanyOrdersContent />
+    </Suspense>
   );
 }

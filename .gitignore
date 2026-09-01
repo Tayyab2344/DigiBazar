@@ -11,6 +11,12 @@ venv/
 .venv/
 *.pyc
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+
 # Node dependencies & builds
 node_modules/
 .next/
