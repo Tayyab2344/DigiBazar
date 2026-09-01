@@ -63,3 +63,35 @@ async def test_enhanced_product_creation_and_publishing(
     )
     assert req_resp.status_code == status.HTTP_201_CREATED
     assert req_resp.json()["status"] == "PENDING"
+
+
+@pytest.mark.asyncio
+async def test_image_upload_blob_and_content_type_fallback(
+    async_client: AsyncClient, company_headers: dict
+):
+    # Upload image with blob filename but valid jpeg content-type
+    files = {"file": ("blob", b"fake_image_bytes", "image/jpeg")}
+    res = await async_client.post("/api/v1/upload/image", files=files, headers=company_headers)
+    assert res.status_code == status.HTTP_200_OK
+    data = res.json()
+    assert "url" in data
+    assert "public_id" in data
+
+
+@pytest.mark.asyncio
+async def test_enhanced_product_creation_with_tags_and_invalid_category(
+    async_client: AsyncClient, company_headers: dict
+):
+    payload = {
+        "name": "Test Wireless Headphones",
+        "price": 12000,
+        "category_id": "00000000-0000-0000-0000-000000000000",  # Non-existent category
+        "tags": ["audio", "bluetooth", "wireless"],
+        "description": "High quality audio headphones",
+    }
+    res = await async_client.post("/api/v1/company/products/enhanced", json=payload, headers=company_headers)
+    assert res.status_code == status.HTTP_201_CREATED
+    data = res.json()
+    assert data["name"] == "Test Wireless Headphones"
+    assert "audio" in data["tags"]
+

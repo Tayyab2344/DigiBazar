@@ -418,7 +418,10 @@ class EnhancedCompanyProductRead(BaseModel):
                 ]
 
             tags_entities = getattr(data, "product_tags", None)
-            tags_list = [t.name if hasattr(t, "name") else str(t) for t in (tags_entities or [])]
+            tags_list = [
+                t.tag if hasattr(t, "tag") else (t.name if hasattr(t, "name") else str(t))
+                for t in (tags_entities or [])
+            ]
 
             rel_prods = getattr(data, "related_products", None)
             rel_ids = [r.related_product_id for r in (rel_prods or []) if hasattr(r, "related_product_id")]

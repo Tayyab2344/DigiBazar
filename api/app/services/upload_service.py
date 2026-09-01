@@ -4,8 +4,8 @@ from typing import Dict
 from fastapi import UploadFile, HTTPException, status
 from app.core.config import settings
 
-ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif", "svg", "avif", "heic", "jfif", "bmp"}
+MAX_FILE_SIZE = 15 * 1024 * 1024  # 15MB
 
 
 class UploadService:
@@ -15,17 +15,35 @@ class UploadService:
         filename = file.filename or "image.png"
         ext = filename.split(".")[-1].lower() if "." in filename else ""
         
-        if ext not in ALLOWED_EXTENSIONS:
+        # If extension is missing or invalid from filename, fallback to content_type inspection
+        if not ext or ext not in ALLOWED_EXTENSIONS:
+            content_type = (file.content_type or "").lower()
+            if "jpeg" in content_type or "jpg" in content_type:
+                ext = "jpg"
+            elif "png" in content_type:
+                ext = "png"
+            elif "webp" in content_type:
+                ext = "webp"
+            elif "gif" in content_type:
+                ext = "gif"
+            elif "svg" in content_type:
+                ext = "svg"
+            elif "avif" in content_type:
+                ext = "avif"
+            elif "heic" in content_type:
+                ext = "heic"
+
+        if not ext or ext not in ALLOWED_EXTENSIONS:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid file type. Allowed formats: {', '.join(ALLOWED_EXTENSIONS).upper()}",
+                detail=f"Invalid file type. Allowed formats: {', '.join(sorted(ALLOWED_EXTENSIONS)).upper()}",
             )
 
         content = await file.read()
         if len(content) > MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File size exceeds maximum limit of 5MB",
+                detail="File size exceeds maximum limit of 15MB",
             )
 
         public_id = f"commercehub_logo_{uuid.uuid4().hex[:10]}"

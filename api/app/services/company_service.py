@@ -387,10 +387,17 @@ class CompanyService:
         if sku_check.scalar_one_or_none():
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"SKU '{sku}' already exists.")
 
+        # Check category existence if provided
+        category_id = data.category_id
+        if category_id:
+            cat_check = await db.execute(select(Category).where(Category.id == category_id))
+            if not cat_check.scalar_one_or_none():
+                category_id = None
+
         # 3. Create Product entity
         product = Product(
             company_id=company.id,
-            category_id=data.category_id,
+            category_id=category_id,
             product_type=data.product_type,
             name=data.name.strip(),
             slug=slug,
@@ -482,14 +489,27 @@ class CompanyService:
         )
         db.add(p_seo)
 
-        # 9. Related Products
-        for rel_id in data.related_product_ids:
-            r_rel = RelatedProduct(product_id=product.id, related_product_id=rel_id, relation_type=RelationType.RELATED)
-            db.add(r_rel)
+        # 9. Related Products (verify existence)
+        if data.related_product_ids:
+            rel_res = await db.execute(select(Product.id).where(Product.id.in_(data.related_product_ids)))
+            valid_rel_ids = list(rel_res.scalars().all())
+            for rel_id in valid_rel_ids:
+                r_rel = RelatedProduct(product_id=product.id, related_product_id=rel_id, relation_type=RelationType.RELATED)
+                db.add(r_rel)
 
-        await db.commit()
-        await db.refresh(product)
-        return product
+        try:
+            await db.commit()
+            await db.refresh(product)
+            return product
+        except HTTPException:
+            await db.rollback()
+            raise
+        except Exception as err:
+            await db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to create product: {str(err)}",
+            )
 
     @staticmethod
     async def create_product_draft(db: AsyncSession, company: Company, data: ProductDraftCreate) -> Product:
@@ -550,6 +570,12 @@ class CompanyService:
         sale_price = update_dict.get("sale_price", product.sale_price)
         if sale_price is not None and sale_price >= price:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sale price must be strictly less than regular price.")
+
+        # Validate category_id if updated
+        if "category_id" in update_dict and update_dict["category_id"]:
+            cat_check = await db.execute(select(Category).where(Category.id == update_dict["category_id"]))
+            if not cat_check.scalar_one_or_none():
+                update_dict["category_id"] = None
 
         for field in [
             "product_type", "name", "brand", "short_description", "description",
@@ -627,9 +653,19 @@ class CompanyService:
                     keywords=seo_data.get("keywords"),
                 ))
 
-        await db.commit()
-        await db.refresh(product)
-        return product
+        try:
+            await db.commit()
+            await db.refresh(product)
+            return product
+        except HTTPException:
+            await db.rollback()
+            raise
+        except Exception as err:
+            await db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to update product: {str(err)}",
+            )
 
     @staticmethod
     async def validate_and_publish_product(db: AsyncSession, company: Company, product_id: uuid.UUID) -> Product:
