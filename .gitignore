@@ -1,21 +1,26 @@
 # Environment variables
 .env
 .env.*
+!.env.example
 *.env
 
-# Python
+# Local Database & SQLite files
+*.db
+*.sqlite
+*.sqlite3
+
+# Python & Caches
 __pycache__/
 *.py[cod]
 *$py.class
 venv/
 .venv/
 *.pyc
+.pytest_cache/
 
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
+# Scratch & Temporary Test Files
+scratch/
+test_*.py
 
 # Node dependencies & builds
 node_modules/
@@ -29,3 +34,4 @@ dist/
 Thumbs.db
 .idea/
 .vscode/
+.vercel
