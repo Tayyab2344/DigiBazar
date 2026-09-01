@@ -514,8 +514,7 @@ class CompanyService:
 
         try:
             await db.commit()
-            await db.refresh(product)
-            return product
+            return await CompanyService.get_enhanced_product(db, company, product.id)
         except HTTPException:
             await db.rollback()
             raise
@@ -670,8 +669,7 @@ class CompanyService:
 
         try:
             await db.commit()
-            await db.refresh(product)
-            return product
+            return await CompanyService.get_enhanced_product(db, company, product.id)
         except HTTPException:
             await db.rollback()
             raise

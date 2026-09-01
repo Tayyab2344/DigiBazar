@@ -190,13 +190,25 @@ export default function NewProductPage() {
     const fieldMap: Record<string, string> = {};
     let msg = err.message || "Failed to save product.";
 
-    if (err.data && Array.isArray(err.data.detail)) {
-      err.data.detail.forEach((item: any) => {
-        const fieldName = item.loc?.[item.loc.length - 1];
-        if (fieldName) {
-          fieldMap[fieldName] = item.msg;
+    if (err.data) {
+      if (Array.isArray(err.data.detail)) {
+        err.data.detail.forEach((item: any) => {
+          if (typeof item === "string") {
+            msg = item;
+          } else if (item.loc) {
+            const fieldName = item.loc[item.loc.length - 1];
+            if (fieldName) {
+              fieldMap[fieldName] = item.msg;
+            }
+          }
+        });
+      } else if (err.data.detail && typeof err.data.detail === "object") {
+        if (Array.isArray(err.data.detail.publishing_errors)) {
+          msg = `Publishing Error: ${err.data.detail.publishing_errors.join(" | ")}`;
+        } else if (typeof err.data.detail === "string") {
+          msg = err.data.detail;
         }
-      });
+      }
     }
 
     setFieldErrors(fieldMap);
