@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # Database settings
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/commercehub"
+    DATABASE_URL: str = "postgresql+asyncpg://neondb_owner:npg_Ue1cmkqK9TJr@ep-polished-bonus-ayf8ktqn-pooler.c-5.us-east-2.aws.neon.tech/neondb?ssl=require"
 
     # JWT Settings (supports SECRET_KEY or JWT_SECRET_KEY)
     JWT_SECRET_KEY: str = Field(
