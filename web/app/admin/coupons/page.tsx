@@ -10,7 +10,19 @@ import { AdminModal } from "@/components/admin/shared/AdminModal";
 import { useToast } from "@/components/admin/shared/AdminToast";
 import { formatCents, formatDate, formatNumber } from "@/lib/utils/format";
 import { CouponAdminRead, DiscountType } from "@/types/admin";
-import { Plus, Ticket } from "lucide-react";
+import { Plus, Ticket, Info } from "lucide-react";
+
+function FieldTooltip({ text }: { text: string }) {
+  return (
+    <span className="relative group inline-flex items-center ml-1.5 cursor-pointer">
+      <Info className="w-3.5 h-3.5 text-[var(--text-tertiary)] hover:text-purple-600 transition-colors" />
+      <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-56 p-2.5 bg-slate-900 text-slate-100 text-[11px] font-normal leading-relaxed rounded-xl shadow-xl border border-slate-700 z-50 text-left">
+        {text}
+        <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900" />
+      </span>
+    </span>
+  );
+}
 
 export default function AdminCouponsPage() {
   const [page, setPage] = useState(1);
@@ -156,10 +168,12 @@ export default function AdminCouponsPage() {
         onClose={() => setIsCreateOpen(false)}
         title="Create Platform Coupon"
         size="md"
-      >
-        <form onSubmit={handleCreate} className="space-y-4">
+              <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">Coupon Code</label>
+            <label className="flex items-center text-xs font-semibold text-[var(--text-secondary)] mb-1">
+              <span>Coupon Code *</span>
+              <FieldTooltip text="The promo code customers enter during checkout (e.g. SUMMER2026). Automatically capitalized." />
+            </label>
             <input
               type="text"
               required
@@ -172,7 +186,10 @@ export default function AdminCouponsPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">Discount Type</label>
+              <label className="flex items-center text-xs font-semibold text-[var(--text-secondary)] mb-1">
+                <span>Discount Type</span>
+                <FieldTooltip text="Select Percentage (%) to reduce total by a percent, or Fixed Amount (PKR) for a flat rupee discount." />
+              </label>
               <select
                 value={discountType}
                 onChange={(e) => setDiscountType(e.target.value as DiscountType)}
@@ -184,7 +201,10 @@ export default function AdminCouponsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">Discount Value</label>
+              <label className="flex items-center text-xs font-semibold text-[var(--text-secondary)] mb-1">
+                <span>Discount Value *</span>
+                <FieldTooltip text={discountType === DiscountType.PERCENTAGE ? "Percentage off total eligible items (e.g. enter 15 for 15% off)." : "Flat Rupee discount (e.g. enter 500 for Rs. 500 off)."} />
+              </label>
               <input
                 type="number"
                 required
@@ -197,7 +217,10 @@ export default function AdminCouponsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">Minimum Order Value (Optional, PKR)</label>
+            <label className="flex items-center text-xs font-semibold text-[var(--text-secondary)] mb-1">
+              <span>Minimum Order Value (Optional, PKR)</span>
+              <FieldTooltip text="Minimum cart subtotal required before this coupon will work (e.g. Rs. 2000). Leave blank for no minimum." />
+            </label>
             <input
               type="number"
               value={minOrder}

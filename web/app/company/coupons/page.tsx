@@ -25,12 +25,25 @@ import {
   PlayCircle,
   ExternalLink,
   Users,
+  Info,
 } from "lucide-react";
 
 interface ProductSimple {
   id: string;
   name: string;
   price: number;
+}
+
+function FieldTooltip({ text }: { text: string }) {
+  return (
+    <span className="relative group inline-flex items-center ml-1.5 cursor-pointer">
+      <Info className="w-3.5 h-3.5 text-slate-400 hover:text-amber-600 transition-colors" />
+      <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-3 bg-slate-900 text-slate-100 text-[11px] font-normal leading-relaxed rounded-xl shadow-xl border border-slate-700 z-50 animate-in fade-in duration-150 text-left">
+        {text}
+        <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900" />
+      </span>
+    </span>
+  );
 }
 
 export default function VendorCouponsPage() {
@@ -476,7 +489,10 @@ export default function VendorCouponsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Coupon Promo Code *</label>
+                  <label className="flex items-center font-semibold text-slate-700 mb-1">
+                    <span>Coupon Promo Code *</span>
+                    <FieldTooltip text="The promo code customers enter during checkout (e.g. SUMMER20). Capitalized automatically." />
+                  </label>
                   <input
                     type="text"
                     required
@@ -485,9 +501,13 @@ export default function VendorCouponsPage() {
                     placeholder="e.g. SUMMER20"
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-amber-500 font-mono font-bold text-sm uppercase text-slate-900"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">Code customer enters at checkout.</p>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Display Name *</label>
+                  <label className="flex items-center font-semibold text-slate-700 mb-1">
+                    <span>Display Name *</span>
+                    <FieldTooltip text="Public and internal title for this promotion (e.g. Summer 20% Off Sale)." />
+                  </label>
                   <input
                     type="text"
                     required
@@ -496,11 +516,15 @@ export default function VendorCouponsPage() {
                     placeholder="e.g. Summer 20% Off Sale"
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-amber-500 text-slate-900 font-medium"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">Title shown in marketing lists.</p>
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Description (Optional)</label>
+                <label className="flex items-center font-semibold text-slate-700 mb-1">
+                  <span>Description (Optional)</span>
+                  <FieldTooltip text="Optional detailed explanation of terms, restrictions, or offer details." />
+                </label>
                 <input
                   type="text"
                   value={description}
@@ -512,7 +536,10 @@ export default function VendorCouponsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Discount Type</label>
+                  <label className="flex items-center font-semibold text-slate-700 mb-1">
+                    <span>Discount Type</span>
+                    <FieldTooltip text="Select Percentage (%) to reduce total by a percent, or Fixed Amount (PKR) for a flat rupee discount." />
+                  </label>
                   <select
                     value={discountType}
                     onChange={(e) => setDiscountType(e.target.value as any)}
@@ -524,8 +551,9 @@ export default function VendorCouponsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    {discountType === "PERCENTAGE" ? "Discount Percentage (%)" : "Discount Amount (PKR)"}
+                  <label className="flex items-center font-semibold text-slate-700 mb-1">
+                    <span>{discountType === "PERCENTAGE" ? "Discount Percentage (%)" : "Discount Amount (PKR)"}</span>
+                    <FieldTooltip text={discountType === "PERCENTAGE" ? "Percentage off eligible items (e.g. enter 20 for 20% off)." : "Flat Rupee discount (e.g. enter 500 for Rs. 500 off)."} />
                   </label>
                   <input
                     type="number"
@@ -539,7 +567,10 @@ export default function VendorCouponsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Promotion Scope</label>
+                <label className="flex items-center font-semibold text-slate-700 mb-1">
+                  <span>Promotion Scope</span>
+                  <FieldTooltip text="Store-Wide: Applies to all items in your store. Products Only: Applies only to checked products. Categories Only: Applies only to checked categories." />
+                </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { id: "STORE", label: "Store-Wide", icon: Store },
@@ -564,27 +595,39 @@ export default function VendorCouponsPage() {
                     );
                   })}
                 </div>
+                <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200/60 p-2 rounded-lg mt-2 font-medium">
+                  {scope === "STORE" && "💡 Store-Wide: Coupon will be valid for all products in your store."}
+                  {scope === "PRODUCTS" && "⚠️ Products Only: Select at least one product below, or customers won't be able to redeem this coupon!"}
+                  {scope === "CATEGORIES" && "⚠️ Categories Only: Select at least one category below, or customers won't be able to redeem this coupon!"}
+                </p>
               </div>
 
               {/* PRODUCTS SELECTOR IF SCOPE === PRODUCTS */}
               {scope === "PRODUCTS" && (
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Select Eligible Products</label>
+                  <label className="flex items-center font-semibold text-slate-700 mb-1">
+                    <span>Select Eligible Products</span>
+                    <FieldTooltip text="Check the specific products that this coupon will discount." />
+                  </label>
                   <div className="max-h-32 overflow-y-auto p-2 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-                    {storeProducts.map((p) => (
-                      <label key={p.id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white cursor-pointer text-slate-800">
-                        <input
-                          type="checkbox"
-                          checked={selectedProductIds.includes(p.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) setSelectedProductIds([...selectedProductIds, p.id]);
-                            else setSelectedProductIds(selectedProductIds.filter((id) => id !== p.id));
-                          }}
-                          className="rounded text-amber-600 focus:ring-amber-500"
-                        />
-                        <span className="font-medium text-xs truncate">{p.name}</span>
-                      </label>
-                    ))}
+                    {storeProducts.length > 0 ? (
+                      storeProducts.map((p) => (
+                        <label key={p.id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white cursor-pointer text-slate-800">
+                          <input
+                            type="checkbox"
+                            checked={selectedProductIds.includes(p.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedProductIds([...selectedProductIds, p.id]);
+                              else setSelectedProductIds(selectedProductIds.filter((id) => id !== p.id));
+                            }}
+                            className="rounded text-amber-600 focus:ring-amber-500"
+                          />
+                          <span className="font-medium text-xs truncate">{p.name}</span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="text-[11px] text-slate-400 p-2 text-center">No store products found.</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -592,29 +635,39 @@ export default function VendorCouponsPage() {
               {/* CATEGORIES SELECTOR IF SCOPE === CATEGORIES */}
               {scope === "CATEGORIES" && (
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Select Eligible Categories</label>
+                  <label className="flex items-center font-semibold text-slate-700 mb-1">
+                    <span>Select Eligible Categories</span>
+                    <FieldTooltip text="Check the specific product categories eligible for this discount." />
+                  </label>
                   <div className="max-h-32 overflow-y-auto p-2 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-                    {storeCategories.map((cat) => (
-                      <label key={cat.id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white cursor-pointer text-slate-800">
-                        <input
-                          type="checkbox"
-                          checked={selectedCategoryIds.includes(cat.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) setSelectedCategoryIds([...selectedCategoryIds, cat.id]);
-                            else setSelectedCategoryIds(selectedCategoryIds.filter((id) => id !== cat.id));
-                          }}
-                          className="rounded text-amber-600 focus:ring-amber-500"
-                        />
-                        <span className="font-medium text-xs">{cat.name}</span>
-                      </label>
-                    ))}
+                    {storeCategories.length > 0 ? (
+                      storeCategories.map((cat) => (
+                        <label key={cat.id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white cursor-pointer text-slate-800">
+                          <input
+                            type="checkbox"
+                            checked={selectedCategoryIds.includes(cat.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedCategoryIds([...selectedCategoryIds, cat.id]);
+                              else setSelectedCategoryIds(selectedCategoryIds.filter((id) => id !== cat.id));
+                            }}
+                            className="rounded text-amber-600 focus:ring-amber-500"
+                          />
+                          <span className="font-medium text-xs">{cat.name}</span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="text-[11px] text-slate-400 p-2 text-center">No categories found.</p>
+                    )}
                   </div>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Minimum Order (PKR)</label>
+                  <label className="flex items-center font-semibold text-slate-700 mb-1">
+                    <span>Minimum Order (PKR)</span>
+                    <FieldTooltip text="Minimum cart subtotal required before coupon can be redeemed (e.g. Rs. 1000). Set 0 for no minimum." />
+                  </label>
                   <input
                     type="number"
                     min={0}
@@ -622,9 +675,13 @@ export default function VendorCouponsPage() {
                     onChange={(e) => setMinimumOrderPKR(parseInt(e.target.value) || 0)}
                     className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-amber-500 text-slate-900 font-semibold"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">0 = No minimum subtotal required.</p>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Maximum Discount Cap (PKR)</label>
+                  <label className="flex items-center font-semibold text-slate-700 mb-1">
+                    <span>Maximum Discount Cap (PKR)</span>
+                    <FieldTooltip text="Maximum PKR discount limit for percentage coupons (e.g. max Rs. 2,000 off even on big orders). Set 0 for no cap." />
+                  </label>
                   <input
                     type="number"
                     min={0}
@@ -633,12 +690,16 @@ export default function VendorCouponsPage() {
                     placeholder="0 = Unlimited"
                     className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-amber-500 text-slate-900 font-semibold"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">0 = Unlimited (no discount cap).</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Total Usage Limit</label>
+                  <label className="flex items-center font-semibold text-slate-700 mb-1">
+                    <span>Total Usage Limit</span>
+                    <FieldTooltip text="Total maximum number of times this coupon can be redeemed by ALL customers combined (e.g. first 100 orders). Set 0 for unlimited uses." />
+                  </label>
                   <input
                     type="number"
                     min={0}
@@ -647,9 +708,13 @@ export default function VendorCouponsPage() {
                     placeholder="0 = Unlimited"
                     className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-amber-500 text-slate-900"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">0 = Unlimited uses overall across all buyers.</p>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Per-Customer Limit</label>
+                  <label className="flex items-center font-semibold text-slate-700 mb-1">
+                    <span>Per-Customer Limit</span>
+                    <FieldTooltip text="Maximum number of times an individual customer account can redeem this coupon code (e.g. 1 use per customer)." />
+                  </label>
                   <input
                     type="number"
                     min={1}
@@ -657,6 +722,7 @@ export default function VendorCouponsPage() {
                     onChange={(e) => setPerCustomerLimit(parseInt(e.target.value) || 1)}
                     className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-amber-500 text-slate-900"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">How many times 1 user can use this code.</p>
                 </div>
               </div>
 

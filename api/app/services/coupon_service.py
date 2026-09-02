@@ -273,10 +273,12 @@ class CouponService:
         # Evaluate cart item eligibility
         eligible_subtotal = 0
         item_breakdowns: List[ItemDiscountBreakdown] = []
+        has_company_mismatch = False
 
         for item in payload.cart_items:
             # Check company match
             if coupon.company_id and item.company_id != coupon.company_id:
+                has_company_mismatch = True
                 item_breakdowns.append(
                     ItemDiscountBreakdown(
                         product_id=item.product_id,
@@ -311,9 +313,18 @@ class CouponService:
             )
 
         if eligible_subtotal <= 0:
+            if has_company_mismatch:
+                msg = "This coupon code belongs to a different store and cannot be applied to items in your cart."
+            elif coupon.scope == DiscountScope.PRODUCTS:
+                msg = "No items in your cart match the specific products eligible for this coupon."
+            elif coupon.scope == DiscountScope.CATEGORIES:
+                msg = "No items in your cart match the specific categories eligible for this coupon."
+            else:
+                msg = "No items in your cart are eligible for this coupon code."
+
             return CouponValidationResponse(
                 valid=False,
-                message="No items in your cart are eligible for this coupon code.",
+                message=msg,
                 code=normalized_code,
                 item_breakdown=item_breakdowns,
             )
