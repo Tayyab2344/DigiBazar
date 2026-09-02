@@ -38,3 +38,14 @@ async def check_review_eligibility(
     Check if current logged-in customer is eligible to write a review for a specific product.
     """
     return await ReviewService.check_eligibility(db, current_user, product_id)
+
+
+@router.get("/my-reviewed-product-ids", response_model=list[str])
+async def get_my_reviewed_product_ids(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Retrieve list of product IDs already reviewed by the current logged-in customer.
+    """
+    return await ReviewService.get_customer_reviewed_product_ids(db, current_user)

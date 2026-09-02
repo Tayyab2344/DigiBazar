@@ -11,6 +11,7 @@ from app.schemas.auth import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
     ResetPasswordRequest,
+    UserProfileUpdateRequest,
     UserResponse,
     LoginResponse,
     MessageResponse,
@@ -76,6 +77,21 @@ async def logout(current_user: User = Depends(get_current_user)) -> MessageRespo
 )
 async def get_me(current_user: User = Depends(get_current_user)) -> UserResponse:
     return UserResponse.model_validate(current_user)
+
+
+@router.patch(
+    "/profile",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update authenticated current user profile and default address",
+)
+async def update_profile(
+    data: UserProfileUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserResponse:
+    updated_user = await AuthService.update_profile(db, current_user, data)
+    return UserResponse.model_validate(updated_user)
 
 
 @router.post(

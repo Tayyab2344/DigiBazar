@@ -125,9 +125,18 @@ async def test_verified_purchase_review_enforcement(client: AsyncClient, db_sess
     assert prod_refreshed.rating == 5.0
     assert prod_refreshed.review_count == 1
 
-    # STEP E: Verify eligibility endpoint returns can_review=True, has_reviewed=True
+    # STEP E: Verify eligibility endpoint returns can_review=False (already reviewed), has_reviewed=True
     elig_resp = await client.get(f"/api/v1/reviews/eligibility/{product.id}", headers=headers)
     assert elig_resp.status_code == 200
     elig_data = elig_resp.json()
-    assert elig_data["can_review"] is True
+    assert elig_data["can_review"] is False
     assert elig_data["has_reviewed"] is True
+
+    # STEP F: Attempting to submit a second review returns 400 Bad Request
+    second_resp = await client.post(
+        "/api/v1/reviews",
+        json={"product_id": str(product.id), "rating": 4, "comment": "Duplicate attempt"},
+        headers=headers,
+    )
+    assert second_resp.status_code == 400
+    assert "already submitted a review" in second_resp.json()["detail"]

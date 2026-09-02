@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/marketplace/Header";
@@ -24,6 +24,8 @@ import {
   Sparkles,
   Loader2,
   AlertTriangle,
+  Tag,
+  X,
 } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -36,10 +38,10 @@ export default function CheckoutPage() {
     user ? `${user.first_name} ${user.last_name}` : ""
   );
   const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("Lahore");
-  const [postalCode, setPostalCode] = useState("");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [address, setAddress] = useState(user?.address?.address_line_1 || "");
+  const [city, setCity] = useState(user?.address?.city || "Lahore");
+  const [postalCode, setPostalCode] = useState(user?.address?.postal_code || "");
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "card" | "wallet">("cod");
   const [shippingMethod, setShippingMethod] = useState<"standard" | "express">("standard");
 
@@ -49,12 +51,33 @@ export default function CheckoutPage() {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
 
+  // Coupon State
+  const [couponCodeInput, setCouponCodeInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountCents: number;
+  } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [orderComplete, setOrderComplete] = useState<{
     orderId: string;
     totalAmount: number;
   } | null>(null);
+
+  // Auto populate address & details if user state initializes after mount
+  useEffect(() => {
+    if (user) {
+      if (!fullName) setFullName(`${user.first_name} ${user.last_name}`);
+      if (!email) setEmail(user.email || "");
+      if (!phone && user.phone) setPhone(user.phone);
+      if (!address && user.address?.address_line_1) setAddress(user.address.address_line_1);
+      if (user.address?.city) setCity(user.address.city);
+      if (!postalCode && user.address?.postal_code) setPostalCode(user.address.postal_code);
+    }
+  }, [user]);
 
   const formatCardNumber = (val: string) => {
     const v = val.replace(/\s+/g, "").replace(/[^0-9]/gi, "").slice(0, 16);
@@ -73,8 +96,51 @@ export default function CheckoutPage() {
     return v;
   };
 
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponCodeInput.trim()) return;
+    setCouponError(null);
+    setCouponLoading(true);
+
+    try {
+      const cartValidations = cartItems.map((item) => ({
+        product_id: item.productId,
+        company_id: item.companyId || "00000000-0000-0000-0000-000000000000",
+        price: item.salePrice && item.salePrice < item.price ? item.salePrice : item.price,
+        quantity: item.quantity,
+      }));
+
+      const res = await companyApi.validateCoupon({
+        code: couponCodeInput.trim().toUpperCase(),
+        cart_items: cartValidations,
+        order_subtotal: subtotalCents,
+      });
+
+      if (res.valid) {
+        setAppliedCoupon({
+          code: res.code || couponCodeInput.trim().toUpperCase(),
+          discountCents: res.total_discount,
+        });
+        setCouponCodeInput("");
+      } else {
+        setCouponError(res.message || "Invalid or inapplicable coupon code.");
+      }
+    } catch (err: any) {
+      console.error("Coupon validation error:", err);
+      setCouponError(err?.detail || err?.message || "Failed to validate coupon code.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError(null);
+  };
+
   const shippingCostCents = shippingMethod === "express" ? 25000 : 0; // 250 PKR if express
-  const totalCents = subtotalCents + shippingCostCents;
+  const couponDiscountCents = appliedCoupon ? appliedCoupon.discountCents : 0;
+  const totalCents = Math.max(0, subtotalCents - couponDiscountCents + shippingCostCents);
 
   const formatPKR = (cents: number) =>
     `Rs. ${(cents / 100).toLocaleString("en-PK", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -115,6 +181,7 @@ export default function CheckoutPage() {
         },
         payment_method: paymentMethod,
         shipping_method: shippingMethod,
+        coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
         items: cartItems.map((item) => ({
           product_id: item.productId,
           company_id: item.companyId || "00000000-0000-0000-0000-000000000000",
@@ -183,7 +250,7 @@ export default function CheckoutPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
                 <Link
                   href="/customer/dashboard"
-                  className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-3 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow-md transition-colors flex items-center justify-center gap-2"
                 >
                   <Package className="w-4 h-4" />
                   <span>View Customer Dashboard</span>
@@ -226,6 +293,13 @@ export default function CheckoutPage() {
 
         {/* Main Content */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {errorMessage && (
+            <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           {cartItems.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-4 shadow-sm my-8">
               <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
@@ -237,7 +311,7 @@ export default function CheckoutPage() {
               </p>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow-md transition-colors"
               >
                 <span>Browse Products</span>
                 <ArrowRight className="w-4 h-4" />
@@ -256,6 +330,20 @@ export default function CheckoutPage() {
                     <div>
                       <h2 className="text-lg font-bold text-slate-900">Shipping Details</h2>
                       <p className="text-xs text-slate-500">Where should we deliver your order?</p>
+                    </div>
+                  </div>
+
+                  {/* Profile Address Pre-fill Info Banner */}
+                  <div className="flex items-start gap-2.5 p-3.5 bg-blue-50/70 border border-blue-100 rounded-2xl text-[11px] text-blue-900">
+                    <MapPin className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold block">Pre-filled from your profile address</span>
+                      <p className="text-slate-600 mt-0.5">
+                        Modifying here updates this order only. To change your saved address permanently, edit your details in{" "}
+                        <Link href="/account/settings" className="font-bold text-blue-700 underline hover:text-blue-900">
+                          Account Settings
+                        </Link>.
+                      </p>
                     </div>
                   </div>
 
@@ -535,12 +623,72 @@ export default function CheckoutPage() {
                     ))}
                   </div>
 
+                  {/* Coupon Code Input Section */}
+                  <div className="border-t border-slate-100 pt-4 space-y-2">
+                    <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Promo / Coupon Code</span>
+                    </label>
+
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-emerald-800 uppercase px-2 py-0.5 bg-emerald-100 rounded-md">
+                            {appliedCoupon.code}
+                          </span>
+                          <span className="text-emerald-700 font-semibold">
+                            Saved {formatPKR(appliedCoupon.discountCents)}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleRemoveCoupon}
+                          className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                          title="Remove Coupon"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={couponCodeInput}
+                          onChange={(e) => setCouponCodeInput(e.target.value)}
+                          placeholder="Enter coupon code"
+                          className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs uppercase text-slate-900 focus:bg-white focus:outline-none focus:border-blue-600"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyCoupon}
+                          disabled={couponLoading || !couponCodeInput.trim()}
+                          className="px-4 py-2 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow-sm transition-colors disabled:opacity-50 flex items-center justify-center min-w-[70px]"
+                        >
+                          {couponLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Apply"}
+                        </button>
+                      </div>
+                    )}
+
+                    {couponError && (
+                      <p className="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
+                        <AlertTriangle className="w-3 h-3 shrink-0" />
+                        <span>{couponError}</span>
+                      </p>
+                    )}
+                  </div>
+
                   {/* Price Calculations */}
                   <div className="border-t border-slate-100 pt-4 space-y-2.5 text-xs text-slate-600">
                     <div className="flex justify-between">
                       <span>Items Subtotal</span>
                       <span className="font-bold text-slate-900">{formatPKR(subtotalCents)}</span>
                     </div>
+                    {appliedCoupon && appliedCoupon.discountCents > 0 && (
+                      <div className="flex justify-between text-emerald-600 font-semibold">
+                        <span>Coupon Discount</span>
+                        <span>-{formatPKR(appliedCoupon.discountCents)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span>Estimated Shipping</span>
                       <span className="font-semibold text-emerald-600">
@@ -553,11 +701,11 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  {/* Submit Button */}
+                  {/* Submit Button - Changed to Black */}
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-2xl shadow-lg transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full py-3.5 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-2xl shadow-lg transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <>

@@ -1,12 +1,13 @@
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
-from sqlalchemy import String, Boolean, Enum as SQLEnum, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Boolean, Enum as SQLEnum, DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import UUID
 
 from app.core.database import Base
 from app.models.enums import UserRole
+from app.models.address import Address
 
 
 def utc_now() -> datetime:
@@ -32,7 +33,7 @@ class User(Base):
         default=UserRole.CUSTOMER,
     )
     address_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), nullable=True
+        UUID(as_uuid=True), ForeignKey("addresses.id", ondelete="SET NULL"), nullable=True
     )
     company_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), nullable=True
@@ -44,6 +45,10 @@ class User(Base):
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+    address: Mapped[Optional[Address]] = relationship(
+        "Address", foreign_keys=[address_id], lazy="selectin"
     )
 
     def __repr__(self) -> str:

@@ -22,6 +22,7 @@ from app.schemas.auth import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
     ResetPasswordRequest,
+    UserProfileUpdateRequest,
     UserResponse,
     LoginResponse,
     MessageResponse,
@@ -253,6 +254,47 @@ class AuthService:
         await db.refresh(user)
 
         return MessageResponse(message="Password reset successfully")
+
+    @staticmethod
+    async def update_profile(
+        db: AsyncSession, user: User, data: UserProfileUpdateRequest
+    ) -> User:
+        """Update current user profile and default delivery address."""
+        if data.first_name is not None:
+            user.first_name = data.first_name.strip()
+        if data.last_name is not None:
+            user.last_name = data.last_name.strip()
+        if data.phone is not None:
+            user.phone = data.phone.strip()
+
+        if data.address is not None:
+            if user.address_id and user.address:
+                user.address.address_line_1 = data.address.address_line_1.strip()
+                user.address.address_line_2 = data.address.address_line_2.strip() if data.address.address_line_2 else None
+                user.address.city = data.address.city.strip()
+                user.address.province = data.address.province.strip()
+                user.address.postal_code = data.address.postal_code.strip()
+                user.address.country = data.address.country.strip()
+                user.address.landmark = data.address.landmark.strip() if data.address.landmark else None
+            else:
+                new_addr = Address(
+                    address_line_1=data.address.address_line_1.strip(),
+                    address_line_2=data.address.address_line_2.strip() if data.address.address_line_2 else None,
+                    city=data.address.city.strip(),
+                    province=data.address.province.strip(),
+                    postal_code=data.address.postal_code.strip(),
+                    country=data.address.country.strip(),
+                    landmark=data.address.landmark.strip() if data.address.landmark else None,
+                )
+                db.add(new_addr)
+                await db.flush()
+                user.address_id = new_addr.id
+                user.address = new_addr
+
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        return user
 
     @staticmethod
     def create_token(data: dict) -> str:

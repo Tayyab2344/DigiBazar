@@ -34,4 +34,7 @@ export const reviewApi = {
 
   checkEligibility: (productId: string) =>
     apiClient<ReviewEligibilityResponse>(`/api/v1/reviews/eligibility/${productId}`),
+
+  getMyReviewedProductIds: () =>
+    apiClient<string[]>("/api/v1/reviews/my-reviewed-product-ids"),
 };

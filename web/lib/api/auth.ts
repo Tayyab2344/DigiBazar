@@ -7,6 +7,7 @@ import {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   ChangePasswordRequest,
+  UserProfileUpdateRequest,
   MessageResponse,
   User,
 } from "@/types/auth";
@@ -38,6 +39,12 @@ export const authApi = {
   getCurrentUser: (): Promise<User> =>
     apiClient<User>("/api/v1/auth/me", {
       method: "GET",
+    }),
+
+  updateProfile: (data: UserProfileUpdateRequest): Promise<User> =>
+    apiClient<User>("/api/v1/auth/profile", {
+      method: "PATCH",
+      body: JSON.stringify(data),
     }),
 
   forgotPassword: (data: ForgotPasswordRequest): Promise<MessageResponse> =>

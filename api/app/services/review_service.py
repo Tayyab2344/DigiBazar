@@ -51,22 +51,40 @@ class ReviewService:
             if has_delivered_order:
                 break
 
+        if existing_review:
+            return ReviewEligibilityResponse(
+                can_review=False,
+                reason="You have already submitted a review for this product.",
+                has_reviewed=True,
+                existing_rating=existing_review.rating,
+                existing_comment=existing_review.comment,
+            )
+
         if not has_delivered_order:
             return ReviewEligibilityResponse(
                 can_review=False,
                 reason="Only customers who have purchased and received this product (Delivered Order) can submit a review.",
-                has_reviewed=bool(existing_review),
-                existing_rating=existing_review.rating if existing_review else None,
-                existing_comment=existing_review.comment if existing_review else None,
+                has_reviewed=False,
+                existing_rating=None,
+                existing_comment=None,
             )
 
         return ReviewEligibilityResponse(
             can_review=True,
             reason=None,
-            has_reviewed=bool(existing_review),
-            existing_rating=existing_review.rating if existing_review else None,
-            existing_comment=existing_review.comment if existing_review else None,
+            has_reviewed=False,
+            existing_rating=None,
+            existing_comment=None,
         )
+
+    @staticmethod
+    async def get_customer_reviewed_product_ids(
+        db: AsyncSession, customer: User
+    ) -> list[str]:
+        res = await db.execute(
+            select(Review.product_id).where(Review.customer_id == customer.id)
+        )
+        return [str(pid) for pid in res.scalars().all()]
 
     @staticmethod
     async def create_review(
@@ -81,7 +99,22 @@ class ReviewService:
                 detail="Product not found.",
             )
 
-        # 2. Check delivered orders for this customer & product
+        # 2. Check if user has already reviewed this product
+        rev_res = await db.execute(
+            select(Review).where(
+                and_(
+                    Review.product_id == payload.product_id,
+                    Review.customer_id == customer.id,
+                )
+            )
+        )
+        if rev_res.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You have already submitted a review for this product.",
+            )
+
+        # 3. Check delivered orders for this customer & product
         orders_res = await db.execute(
             select(Order).where(
                 and_(
@@ -109,32 +142,16 @@ class ReviewService:
                 detail="Only customers who have purchased and received this product (Delivered Order) can submit a review.",
             )
 
-        # 3. Check if review already exists
-        rev_res = await db.execute(
-            select(Review).where(
-                and_(
-                    Review.product_id == payload.product_id,
-                    Review.customer_id == customer.id,
-                )
-            )
+        review = Review(
+            product_id=payload.product_id,
+            company_id=matching_order.company_id,
+            customer_id=customer.id,
+            rating=payload.rating,
+            comment=payload.comment,
+            is_verified_purchase=True,
+            is_hidden=False,
         )
-        existing_review = rev_res.scalar_one_or_none()
-
-        if existing_review:
-            existing_review.rating = payload.rating
-            existing_review.comment = payload.comment
-            review = existing_review
-        else:
-            review = Review(
-                product_id=payload.product_id,
-                company_id=matching_order.company_id,
-                customer_id=customer.id,
-                rating=payload.rating,
-                comment=payload.comment,
-                is_verified_purchase=True,
-                is_hidden=False,
-            )
-            db.add(review)
+        db.add(review)
 
         await db.flush()
 

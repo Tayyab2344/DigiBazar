@@ -81,6 +81,32 @@ export const companyApi = {
   toggleCouponActive: (id: string, active: boolean) =>
     apiClient<any>(`/api/v1/coupons/${id}/${active ? "activate" : "pause"}`, { method: "POST" }),
   deleteCoupon: (id: string) => apiClient<{ message: string }>(`/api/v1/coupons/${id}`, { method: "DELETE" }),
+  validateCoupon: (payload: {
+    code: string;
+    company_id?: string | null;
+    cart_items: {
+      product_id: string;
+      company_id: string;
+      category_id?: string | null;
+      price: number;
+      quantity: number;
+    }[];
+    order_subtotal: number;
+  }) =>
+    apiClient<{
+      valid: boolean;
+      message: string;
+      coupon_id?: string | null;
+      code?: string | null;
+      discount_type?: string | null;
+      discount_value?: number | null;
+      scope?: string | null;
+      total_discount: number;
+      final_subtotal: number;
+    }>("/api/v1/coupons/validate", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
   // Campaigns
   listCampaigns: () => apiClient<any[]>("/api/v1/campaigns"),

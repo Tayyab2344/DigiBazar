@@ -6,6 +6,9 @@ from pydantic import BaseModel, EmailStr, Field, model_validator, field_validato
 from app.models.enums import UserRole, BusinessType
 
 
+
+
+
 class AddressSchema(BaseModel):
     address_line_1: str = Field(..., min_length=1, max_length=255, description="House / Flat / Street address")
     address_line_2: Optional[str] = Field(None, max_length=255, description="Apartment, suite, floor, etc.")
@@ -14,6 +17,8 @@ class AddressSchema(BaseModel):
     postal_code: str = Field(..., min_length=1, max_length=20, description="Postal code")
     country: str = Field("Pakistan", min_length=1, max_length=100, description="Country")
     landmark: Optional[str] = Field(None, max_length=255, description="Nearby landmark")
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CustomerRegisterRequest(BaseModel):
@@ -128,6 +133,13 @@ class ResetPasswordRequest(BaseModel):
         return self
 
 
+class UserProfileUpdateRequest(BaseModel):
+    first_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    last_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    phone: Optional[str] = Field(None, min_length=5, max_length=50)
+    address: Optional[AddressSchema] = None
+
+
 class UserResponse(BaseModel):
     id: uuid.UUID
     first_name: str
@@ -138,6 +150,8 @@ class UserResponse(BaseModel):
     is_active: bool
     is_verified: bool
     company_id: Optional[uuid.UUID] = None
+    address_id: Optional[uuid.UUID] = None
+    address: Optional[AddressSchema] = None
 
     model_config = ConfigDict(from_attributes=True)
 

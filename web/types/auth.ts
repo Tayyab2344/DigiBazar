@@ -10,6 +10,15 @@ export interface User {
   is_active: boolean;
   is_verified: boolean;
   company_id?: string | null;
+  address_id?: string | null;
+  address?: AddressData | null;
+}
+
+export interface UserProfileUpdateRequest {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  address?: AddressData;
 }
 
 export interface LoginRequest {

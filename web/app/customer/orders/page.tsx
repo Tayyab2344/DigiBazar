@@ -6,6 +6,7 @@ import { Header } from "@/components/marketplace/Header";
 import { Footer } from "@/components/marketplace/Footer";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { companyApi } from "@/lib/api/company";
+import { reviewApi } from "@/lib/api/review";
 import {
   ShoppingBag,
   Clock,
@@ -64,12 +65,17 @@ export default function CustomerOrdersPage() {
   const [activeTab, setActiveTab] = useState<"all" | "active" | "history">("active");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [reviewModalTarget, setReviewModalTarget] = useState<{ id: string; name: string } | null>(null);
+  const [reviewedProductIds, setReviewedProductIds] = useState<string[]>([]);
 
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const res = await companyApi.getMyOrders();
+      const [res, reviewedIds] = await Promise.all([
+        companyApi.getMyOrders(),
+        reviewApi.getMyReviewedProductIds().catch(() => []),
+      ]);
       setOrders(res || []);
+      setReviewedProductIds(reviewedIds || []);
       // Expand first order by default if available
       if (res && res.length > 0) {
         setExpandedOrderId(res[0].id);
@@ -362,10 +368,10 @@ export default function CustomerOrdersPage() {
                               const qty = item.qty || item.quantity || 1;
                               const unitPrice = item.unit_price_cents || item.unit_price || item.price || 0;
                               const itemTotal = item.total_cents || item.total_price || unitPrice * qty;
-                              const img = item.image || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80";
+                              const productId = item.product_id || item.productId || item.id;
 
                               return (
-                                <div key={idx} className="p-4 flex items-center justify-between gap-4">
+                                <div key={idx} className="p-4 flex items-center justify-between gap-4 flex-wrap">
                                   <div className="flex items-center gap-3.5 min-w-0">
                                     <img
                                       src={img}
@@ -383,14 +389,21 @@ export default function CustomerOrdersPage() {
                                     <div className="font-extrabold text-xs text-slate-900">
                                       {formatPKR(itemTotal)}
                                     </div>
-                                    {order.order_status?.toLowerCase() === "delivered" && item.product_id && (
-                                      <button
-                                        onClick={() => setReviewModalTarget({ id: item.product_id!, name: title })}
-                                        className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 font-bold text-[11px] rounded-xl flex items-center gap-1 transition-colors shadow-2xs"
-                                      >
-                                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                                        <span>Write Review</span>
-                                      </button>
+                                    {order.order_status?.toLowerCase() === "delivered" && (
+                                      productId && reviewedProductIds.includes(productId) ? (
+                                        <span className="px-3.5 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-extrabold text-xs rounded-xl flex items-center gap-1.5 shadow-2xs">
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                          <span>Reviewed</span>
+                                        </span>
+                                      ) : (
+                                        <button
+                                          onClick={() => setReviewModalTarget({ id: productId || "", name: title })}
+                                          className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
+                                        >
+                                          <Star className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+                                          <span>Write Review</span>
+                                        </button>
+                                      )
                                     )}
                                   </div>
                                 </div>
