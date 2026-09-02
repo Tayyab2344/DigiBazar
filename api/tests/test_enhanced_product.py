@@ -95,3 +95,31 @@ async def test_enhanced_product_creation_with_tags_and_invalid_category(
     assert data["name"] == "Test Wireless Headphones"
     assert "audio" in data["tags"]
 
+
+@pytest.mark.asyncio
+async def test_enhanced_product_creation_with_long_data_url(
+    async_client: AsyncClient, company_headers: dict
+):
+    # Simulate a ~35KB base64 Data URL (which previously caused StringDataRightTruncationError)
+    long_data_url = "data:image/jfif;base64," + ("A" * 35000)
+    payload = {
+        "name": "Test Product with Base64 Image",
+        "price": 2500,
+        "description": "Product testing long data URL storage in database",
+        "images": [
+            {
+                "url": long_data_url,
+                "alt_text": "Base64 Image Test",
+                "sort_order": 0,
+                "is_primary": True,
+            }
+        ],
+    }
+    res = await async_client.post("/api/v1/company/products/enhanced", json=payload, headers=company_headers)
+    assert res.status_code == status.HTTP_201_CREATED
+    data = res.json()
+    assert data["name"] == "Test Product with Base64 Image"
+    assert len(data["images"]) == 1
+    assert data["images"][0]["url"].startswith("data:image/jfif;base64,")
+
+

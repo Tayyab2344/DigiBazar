@@ -76,6 +76,7 @@ export function ProductMediaManager({ images, onChangeImages }: Props) {
           publicId = uploadRes.public_id;
         } catch {
           finalUrl = await readFileAsDataURL(file);
+          setUploadError("Image hosting service unavailable: attached as direct data preview URL.");
         }
 
         newUploaded.push({

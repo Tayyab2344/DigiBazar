@@ -202,11 +202,11 @@ export default function NewProductPage() {
             }
           }
         });
+      } else if (typeof err.data.detail === "string") {
+        msg = err.data.detail;
       } else if (err.data.detail && typeof err.data.detail === "object") {
         if (Array.isArray(err.data.detail.publishing_errors)) {
           msg = `Publishing Error: ${err.data.detail.publishing_errors.join(" | ")}`;
-        } else if (typeof err.data.detail === "string") {
-          msg = err.data.detail;
         }
       }
     }

@@ -130,7 +130,7 @@ class ProductImage(Base):
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), index=True, nullable=False
     )
-    url: Mapped[str] = mapped_column(String(1000), nullable=False)
+    url: Mapped[str] = mapped_column(Text, nullable=False)
     cloudinary_public_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     alt_text: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -158,7 +158,7 @@ class ProductVariant(Base):
     stock: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     low_stock_threshold: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
     barcode: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    image_url: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
+    image_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     weight: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     attributes: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)  # e.g. {"Color": "Black", "Size": "M"}
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
