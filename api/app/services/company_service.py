@@ -910,6 +910,19 @@ class CompanyService:
         if new_status == OrderStatus.DELIVERED:
             order.payment_status = PaymentStatus.PAID
 
+            # Increment sales_count only on fresh transition to DELIVERED
+            if prev_status != OrderStatus.DELIVERED and order.items:
+                for item in order.items:
+                    product_id = item.get("product_id")
+                    qty = item.get("qty", 1)
+                    if product_id:
+                        prod_res = await db.execute(
+                            select(Product).where(Product.id == uuid.UUID(product_id))
+                        )
+                        product = prod_res.scalar_one_or_none()
+                        if product:
+                            product.sales_count = product.sales_count + qty
+
         history = OrderStatusHistory(
             order_id=order.id,
             previous_status=prev_status,
