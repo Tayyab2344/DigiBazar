@@ -26,7 +26,7 @@ export default function CustomerDashboardPage() {
         <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
           <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
                 Customer Portal
               </span>
               <h1 className="text-2xl font-bold text-slate-900 mt-2">
@@ -46,7 +46,7 @@ export default function CustomerDashboardPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
-              <div className="p-2.5 w-fit rounded-lg bg-blue-50 text-blue-600">
+              <div className="p-2.5 w-fit rounded-lg bg-amber-50 text-amber-600">
                 <ShoppingBag className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-slate-900 text-sm">My Orders</h3>

@@ -115,9 +115,33 @@ export default function CompanyProductsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  // Quick Restock State
+  const [restockProduct, setRestockProduct] = useState<{ id: string; name: string; currentStock: number } | null>(null);
+  const [unitsToAdd, setUnitsToAdd] = useState<number>(10);
+  const [isRestocking, setIsRestocking] = useState(false);
+
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleQuickRestockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!restockProduct) return;
+    const addCount = Number(unitsToAdd) || 0;
+    const newStock = Math.max(0, restockProduct.currentStock + addCount);
+    try {
+      setIsRestocking(true);
+      await companyApi.updateStock(restockProduct.id, newStock, `Restocked +${addCount} units via Products Catalog`);
+      showToast(`Successfully updated stock for "${restockProduct.name}" to ${newStock} units.`, "success");
+      setRestockProduct(null);
+      loadProducts();
+    } catch (err: any) {
+      console.error("Restock error:", err);
+      showToast(err?.detail || err?.message || "Failed to update stock. Please try again.", "error");
+    } finally {
+      setIsRestocking(false);
+    }
   };
 
   const loadProducts = async () => {
@@ -357,9 +381,26 @@ export default function CompanyProductsPage() {
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`font-extrabold ${p.stock <= 5 ? "text-rose-600" : "text-slate-900"}`}>
-                        {p.stock} units
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-extrabold text-xs ${p.stock <= 0 ? "text-rose-600 font-black" : p.stock <= 5 ? "text-amber-600 font-extrabold" : "text-slate-900"}`}>
+                          {p.stock} units
+                        </span>
+                        <button
+                          onClick={() => {
+                            setRestockProduct({ id: p.id, name: p.name, currentStock: p.stock });
+                            setUnitsToAdd(10);
+                          }}
+                          className={`px-2 py-0.5 rounded-lg text-[10px] font-extrabold transition-all flex items-center gap-1 cursor-pointer shadow-2xs ${
+                            p.stock <= 0
+                              ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20 animate-pulse"
+                              : "bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80"
+                          }`}
+                          title={p.stock <= 0 ? "Make item in stock" : "Restock units"}
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>{p.stock <= 0 ? "+ In Stock" : "Restock"}</span>
+                        </button>
+                      </div>
                     </td>
                     <td className="py-3 px-4 text-slate-600 font-semibold">{p.sales_count || 0}</td>
                     <td className="py-3 px-4">
@@ -638,6 +679,104 @@ export default function CompanyProductsPage() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Restock Modal */}
+      {restockProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative space-y-6">
+            <button
+              onClick={() => setRestockProduct(null)}
+              className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 text-[11px] font-black rounded-full border border-emerald-200 uppercase tracking-wider mb-2">
+                <Boxes className="w-3.5 h-3.5 text-emerald-600" /> Quick Stock Update
+              </span>
+              <h3 className="text-xl font-black text-slate-900 tracking-tight leading-snug">
+                Restock {restockProduct.name}
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Current inventory: <strong className="text-slate-800 font-bold">{restockProduct.currentStock} units</strong>
+              </p>
+            </div>
+
+            <form onSubmit={handleQuickRestockSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                  Units to Add to Stock
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    value={unitsToAdd}
+                    onChange={(e) => setUnitsToAdd(Math.max(1, parseInt(e.target.value) || 0))}
+                    className="w-full p-3.5 text-sm font-black bg-slate-50 border border-slate-200 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900"
+                    required
+                    autoFocus
+                  />
+                </div>
+                {/* Quick Presets */}
+                <div className="flex items-center gap-2 pt-1 flex-wrap">
+                  <span className="text-[11px] font-bold text-slate-400">Quick Add:</span>
+                  {[5, 10, 25, 50, 100].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setUnitsToAdd(preset)}
+                      className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                        unitsToAdd === preset
+                          ? "bg-amber-500 text-slate-950 border-amber-500 shadow-xs"
+                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      +{preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-emerald-50/80 rounded-2xl border border-emerald-100 flex items-center justify-between text-xs font-semibold text-emerald-900">
+                <span>New Total Inventory:</span>
+                <span className="font-extrabold text-sm text-emerald-700">
+                  {restockProduct.currentStock + (Number(unitsToAdd) || 0)} units
+                </span>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setRestockProduct(null)}
+                  disabled={isRestocking}
+                  className="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isRestocking}
+                  className="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-600/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isRestocking ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Confirm & Make In Stock</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

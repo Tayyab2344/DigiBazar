@@ -22,7 +22,9 @@ import {
   ExternalLink,
   MapPin,
   Calendar,
+  Star,
 } from "lucide-react";
+import { WriteReviewModal } from "@/components/marketplace/WriteReviewModal";
 
 interface CustomerOrderItem {
   id?: string;
@@ -61,6 +63,7 @@ export default function CustomerOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"all" | "active" | "history">("active");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [reviewModalTarget, setReviewModalTarget] = useState<{ id: string; name: string } | null>(null);
 
   const loadOrders = async () => {
     try {
@@ -152,9 +155,9 @@ export default function CustomerOrdersPage() {
 
         <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
           {/* Header Banner */}
-          <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-6 sm:p-8 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-gradient-to-r from-slate-900 via-amber-950/80 to-slate-900 p-6 sm:p-8 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 text-xs text-blue-400 font-bold uppercase tracking-wider mb-1">
+              <div className="flex items-center gap-2 text-xs text-amber-400 font-bold uppercase tracking-wider mb-1">
                 <ShoppingBag className="w-4 h-4" /> My Account
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Your Orders & Fulfillment</h1>
@@ -177,7 +180,7 @@ export default function CustomerOrdersPage() {
               onClick={() => setActiveTab("active")}
               className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 whitespace-nowrap ${
                 activeTab === "active"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
                   : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
               }`}
             >
@@ -185,7 +188,7 @@ export default function CustomerOrdersPage() {
               <span>Active Orders</span>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                  activeTab === "active" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-800"
+                  activeTab === "active" ? "bg-slate-950/15 text-slate-950" : "bg-amber-100 text-amber-900"
                 }`}
               >
                 {activeOrders.length}
@@ -196,7 +199,7 @@ export default function CustomerOrdersPage() {
               onClick={() => setActiveTab("history")}
               className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 whitespace-nowrap ${
                 activeTab === "history"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
                   : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
               }`}
             >
@@ -204,7 +207,7 @@ export default function CustomerOrdersPage() {
               <span>Order History</span>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                  activeTab === "history" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                  activeTab === "history" ? "bg-slate-950/15 text-slate-950" : "bg-slate-100 text-slate-700"
                 }`}
               >
                 {historyOrders.length}
@@ -215,7 +218,7 @@ export default function CustomerOrdersPage() {
               onClick={() => setActiveTab("all")}
               className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 whitespace-nowrap ${
                 activeTab === "all"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
                   : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
               }`}
             >
@@ -223,7 +226,7 @@ export default function CustomerOrdersPage() {
               <span>All Orders</span>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                  activeTab === "all" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                  activeTab === "all" ? "bg-slate-950/15 text-slate-950" : "bg-slate-100 text-slate-700"
                 }`}
               >
                 {orders.length}
@@ -234,12 +237,12 @@ export default function CustomerOrdersPage() {
           {/* Orders List Container */}
           {loading ? (
             <div className="py-24 text-center text-xs text-slate-500 font-semibold space-y-3 bg-white rounded-3xl border border-slate-200">
-              <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
               <span>Fetching your order updates...</span>
             </div>
           ) : displayedOrders.length === 0 ? (
             <div className="py-16 text-center space-y-4 bg-white rounded-3xl border border-slate-200 shadow-2xs p-8">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
                 <ShoppingBag className="w-8 h-8" />
               </div>
               <div>
@@ -252,7 +255,7 @@ export default function CustomerOrdersPage() {
               </div>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-md"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md shadow-amber-500/20"
               >
                 <span>Browse Products</span>
                 <ArrowRight className="w-4 h-4" />
@@ -284,7 +287,7 @@ export default function CustomerOrdersPage() {
                             {badge.label}
                           </span>
                           <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-semibold">
-                            <Store className="w-3.5 h-3.5 text-blue-600" />
+                            <Store className="w-3.5 h-3.5 text-amber-600" />
                             <span>{order.company_name}</span>
                           </span>
                         </div>
@@ -303,7 +306,7 @@ export default function CustomerOrdersPage() {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                        <span className="text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors">
                           {isExpanded ? "Hide Details" : "View Order Details"}
                         </span>
                         <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
@@ -331,11 +334,11 @@ export default function CustomerOrdersPage() {
                                 <div
                                   className={`w-6 h-6 rounded-full flex items-center justify-center font-extrabold text-[10px] transition-all ${
                                     isCompleted
-                                      ? "bg-blue-600 text-white shadow-md shadow-blue-500/50 ring-2 ring-blue-400/30"
+                                      ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/50 ring-2 ring-amber-400/30"
                                       : "bg-slate-800 text-slate-500 border border-slate-700"
                                   }`}
                                 >
-                                  {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : idx + 1}
+                                  {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5 text-slate-950" /> : idx + 1}
                                 </div>
                                 <span className={`text-[10px] font-bold ${isCompleted ? "text-white" : "text-slate-500"}`}>
                                   {step.label}
@@ -376,8 +379,19 @@ export default function CustomerOrdersPage() {
                                       </span>
                                     </div>
                                   </div>
-                                  <div className="font-extrabold text-xs text-slate-900 shrink-0">
-                                    {formatPKR(itemTotal)}
+                                  <div className="flex items-center gap-3 shrink-0">
+                                    <div className="font-extrabold text-xs text-slate-900">
+                                      {formatPKR(itemTotal)}
+                                    </div>
+                                    {order.order_status?.toLowerCase() === "delivered" && item.product_id && (
+                                      <button
+                                        onClick={() => setReviewModalTarget({ id: item.product_id!, name: title })}
+                                        className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 font-bold text-[11px] rounded-xl flex items-center gap-1 transition-colors shadow-2xs"
+                                      >
+                                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                        <span>Write Review</span>
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                               );
@@ -411,7 +425,7 @@ export default function CustomerOrdersPage() {
                             </div>
                             <div className="flex justify-between font-extrabold text-slate-900 border-t border-slate-200 pt-2 text-xs">
                               <span>Total Paid:</span>
-                              <span className="text-blue-600">{formatPKR(order.total)}</span>
+                              <span className="text-amber-600 font-black">{formatPKR(order.total)}</span>
                             </div>
                           </div>
                         </div>
@@ -423,6 +437,16 @@ export default function CustomerOrdersPage() {
             </div>
           )}
         </main>
+
+        {reviewModalTarget && (
+          <WriteReviewModal
+            isOpen={!!reviewModalTarget}
+            onClose={() => setReviewModalTarget(null)}
+            productId={reviewModalTarget.id}
+            productName={reviewModalTarget.name}
+            onSuccess={loadOrders}
+          />
+        )}
 
         <Footer />
       </div>

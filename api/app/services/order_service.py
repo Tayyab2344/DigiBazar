@@ -75,8 +75,18 @@ class OrderService:
 
                 # Deduct inventory stock if tracking
                 if product.track_inventory:
+                    if product.stock <= 0:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Product '{product.name}' is currently out of stock.",
+                        )
+                    if product.stock < item.quantity:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Only {product.stock} unit(s) available for product '{product.name}' (Requested: {item.quantity}).",
+                        )
                     prev_stock = product.stock
-                    new_stock = max(0, prev_stock - item.quantity)
+                    new_stock = prev_stock - item.quantity
                     product.stock = new_stock
 
                     # Inventory Audit Log

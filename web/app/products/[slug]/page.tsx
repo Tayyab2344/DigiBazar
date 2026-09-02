@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { publicApi, ProductDetail, ReviewItem, ReviewSummary, PublicProductCard } from "@/lib/api/public";
+import { reviewApi, ReviewEligibilityResponse } from "@/lib/api/review";
 import { useCart } from "@/context/CartContext";
 import { addRecentlyViewed, getRecentlyViewed } from "@/lib/recentlyViewed";
 
@@ -29,6 +30,7 @@ import { Footer } from "@/components/marketplace/Footer";
 import { ProductGallery } from "@/components/marketplace/ProductGallery";
 import { ProductReviews } from "@/components/marketplace/ProductReviews";
 import { ProductCard } from "@/components/marketplace/ProductCard";
+import { WriteReviewModal } from "@/components/marketplace/WriteReviewModal";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -48,7 +50,10 @@ export default function ProductDetailPage() {
   const [addedToast, setAddedToast] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "specifications" | "reviews" | "shipping">("description");
 
-  useEffect(() => {
+  const [eligibility, setEligibility] = useState<ReviewEligibilityResponse | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+
+  const loadProductData = () => {
     if (!slug) return;
     setIsLoading(true);
 
@@ -62,13 +67,16 @@ export default function ProductDetailPage() {
         setReviewsData(revRes);
         setRelatedProducts(relRes.items.filter((p) => p.slug !== slug).slice(0, 4));
 
-        // Initial default variant attributes selection
         if (prodRes && prodRes.variants && prodRes.variants.length > 0) {
           setSelectedAttributes(prodRes.variants[0].attributes || {});
         }
 
-        // Add to recently viewed localStorage
         if (prodRes) {
+          // Check review eligibility if user is logged in
+          reviewApi.checkEligibility(prodRes.id)
+            .then((elig) => setEligibility(elig))
+            .catch(() => setEligibility(null));
+
           const cardObj: PublicProductCard = {
             id: prodRes.id,
             name: prodRes.name,
@@ -96,6 +104,10 @@ export default function ProductDetailPage() {
       })
       .catch((err) => console.error("Error loading product detail:", err))
       .finally(() => setIsLoading(false));
+  };
+
+  useEffect(() => {
+    loadProductData();
   }, [slug]);
 
   if (isLoading || !product) {
@@ -531,7 +543,32 @@ export default function ProductDetailPage() {
 
                   {/* ── REVIEWS TAB ── */}
                   {activeTab === "reviews" && (
-                    <div className="p-6 sm:p-8">
+                    <div className="p-6 sm:p-8 space-y-6">
+                      {/* Review Authorization Header Card */}
+                      <div className="p-5 rounded-2xl border border-slate-200 bg-gradient-to-r from-amber-50/60 via-slate-50 to-emerald-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-1.5 text-xs font-extrabold text-amber-800 uppercase tracking-wider mb-1">
+                            <ShieldCheck className="w-4 h-4 text-emerald-600" /> Verified Buyer Review Policy
+                          </div>
+                          <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                            {eligibility?.can_review
+                              ? "You have a delivered order for this item. Share your genuine feedback!"
+                              : eligibility?.has_reviewed
+                              ? "You have already submitted a review for this product."
+                              : "Only customers who have purchased and received this product (Order Delivered) can leave a review."}
+                          </p>
+                        </div>
+                        {eligibility?.can_review && (
+                          <button
+                            onClick={() => setIsReviewModalOpen(true)}
+                            className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-md shadow-amber-500/20 flex items-center gap-2 transition-all self-start sm:self-auto shrink-0"
+                          >
+                            <Star className="w-4 h-4 fill-slate-950 text-slate-950" />
+                            <span>{eligibility.has_reviewed ? "Edit Your Review" : "Write a Review"}</span>
+                          </button>
+                        )}
+                      </div>
+
                       {reviewsData ? (
                         <ProductReviews summary={reviewsData.summary} reviews={reviewsData.reviews} />
                       ) : (
@@ -719,6 +756,18 @@ export default function ProductDetailPage() {
           </section>
         )}
       </main>
+
+      {product && (
+        <WriteReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          productId={product.id}
+          productName={product.name}
+          initialRating={eligibility?.existing_rating || 5}
+          initialComment={eligibility?.existing_comment || ""}
+          onSuccess={loadProductData}
+        />
+      )}
 
       <Footer />
     </div>

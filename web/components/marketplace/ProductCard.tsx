@@ -65,12 +65,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
           {/* Badges Overlay */}
           <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10 pointer-events-none">
-            {product.discount_percentage > 0 && (
+            {product.stock <= 0 && (
+              <span className="px-2 py-0.5 rounded-md font-black text-[10px] bg-rose-600 text-white shadow-xs tracking-wider uppercase">
+                OUT OF STOCK
+              </span>
+            )}
+            {product.discount_percentage > 0 && product.stock > 0 && (
               <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-rose-600 text-white shadow-xs tracking-wider">
                 {product.discount_percentage}% OFF
               </span>
             )}
-            {product.badge && product.badge !== "FLASH SALE" && (
+            {product.badge && product.badge !== "FLASH SALE" && product.stock > 0 && (
               <span
                 className={`px-2 py-0.5 rounded-md font-semibold text-[10px] text-white shadow-xs uppercase tracking-wider ${
                   product.badge === "BEST SELLER"
@@ -154,10 +159,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="p-3.5 pt-0">
         <button
           onClick={handleQuickAdd}
-          className="w-full py-2 px-3 bg-slate-100 hover:bg-amber-500 text-slate-700 hover:text-slate-950 font-medium text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+          disabled={product.stock <= 0}
+          className={`w-full py-2 px-3 font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-xs ${
+            product.stock <= 0
+              ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 opacity-80"
+              : "bg-slate-100 hover:bg-amber-500 text-slate-700 hover:text-slate-950 cursor-pointer"
+          }`}
         >
           <ShoppingBag className="w-3.5 h-3.5" />
-          <span>Add to Cart</span>
+          <span>{product.stock <= 0 ? "Out of Stock" : "Add to Cart"}</span>
         </button>
       </div>
     </div>

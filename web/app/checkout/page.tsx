@@ -84,6 +84,24 @@ export default function CheckoutPage() {
     if (cartItems.length === 0) return;
 
     setErrorMessage(null);
+
+    // Validate cart items stock before submitting checkout
+    const outOfStockItems = cartItems.filter((item) => item.stock !== undefined && item.stock <= 0);
+    if (outOfStockItems.length > 0) {
+      const itemNames = outOfStockItems.map((it) => `"${it.name}"`).join(", ");
+      setErrorMessage(`Cannot place order: ${itemNames} is currently out of stock. Please remove out-of-stock items from your cart.`);
+      return;
+    }
+
+    const insufficientStockItems = cartItems.filter(
+      (item) => item.stock !== undefined && item.stock > 0 && item.quantity > item.stock
+    );
+    if (insufficientStockItems.length > 0) {
+      const itemNames = insufficientStockItems.map((it) => `"${it.name}" (Available: ${it.stock})`).join(", ");
+      setErrorMessage(`Cannot place order: Insufficient stock for ${itemNames}. Please update cart quantities.`);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

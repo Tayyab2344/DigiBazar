@@ -15,6 +15,7 @@ from app.routers.orders import router as orders_router
 from app.routers.coupons import router as coupons_router
 from app.routers.campaigns import router as campaigns_router
 from app.routers.tracking import router as tracking_router
+from app.routers.reviews import router as reviews_router
 from app.services.auth_service import AuthService
 from app.services.public_service import PublicService
 
@@ -124,6 +125,7 @@ app.include_router(orders_router)
 app.include_router(coupons_router)
 app.include_router(campaigns_router)
 app.include_router(tracking_router)
+app.include_router(reviews_router)
 
 
 

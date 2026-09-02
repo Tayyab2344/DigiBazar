@@ -63,13 +63,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [cartItems, isLoaded]);
 
   const addToCart = (newItem: Omit<CartItem, "id">) => {
+    if (newItem.stock !== undefined && newItem.stock <= 0) {
+      alert(`Sorry, "${newItem.name}" is currently out of stock and cannot be added to your cart.`);
+      return;
+    }
     const id = newItem.variantId ? `${newItem.productId}-${newItem.variantId}` : newItem.productId;
     setCartItems((prev) => {
       const existingIndex = prev.findIndex((item) => item.id === id);
       if (existingIndex > -1) {
         const updated = [...prev];
         const existing = updated[existingIndex];
-        const newQty = Math.min(existing.quantity + newItem.quantity, newItem.stock || 99);
+        const maxStock = newItem.stock ?? existing.stock ?? 99;
+        if (existing.quantity >= maxStock && maxStock > 0) {
+          alert(`You already have the maximum available stock (${maxStock} units) for "${newItem.name}" in your cart.`);
+          return prev;
+        }
+        const newQty = Math.min(existing.quantity + newItem.quantity, maxStock);
         updated[existingIndex] = { ...existing, quantity: newQty };
         return updated;
       }
