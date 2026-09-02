@@ -43,16 +43,19 @@ class CampaignService:
     async def create_campaign(
         db: AsyncSession, company_id: uuid.UUID, payload: CampaignCreateRequest
     ) -> CampaignResponse:
-        # Check influencer exists
-        inf_res = await db.execute(
-            select(Influencer).where(Influencer.id == payload.influencer_id)
-        )
-        influencer = inf_res.scalar_one_or_none()
-        if not influencer:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Influencer not found.",
+        # Check influencer if provided
+        influencer_id_val = None
+        if payload.influencer_id:
+            inf_res = await db.execute(
+                select(Influencer).where(Influencer.id == payload.influencer_id)
             )
+            influencer = inf_res.scalar_one_or_none()
+            if not influencer:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Influencer not found.",
+                )
+            influencer_id_val = influencer.id
 
         # Normalize tracking code
         raw_code = payload.coupon_code or f"CAMPAIGN-{str(uuid.uuid4())[:8].upper()}"
@@ -94,7 +97,7 @@ class CampaignService:
 
         campaign = Campaign(
             company_id=company_id,
-            influencer_id=influencer.id,
+            influencer_id=influencer_id_val,
             coupon_id=coupon_id,
             name=payload.name,
             description=payload.description,
@@ -103,6 +106,7 @@ class CampaignService:
             scope=payload.scope,
             commission_type=payload.commission_type,
             commission_value=payload.commission_value,
+            budget=payload.budget or 0,
             tracking_code=tracking_code,
             tracking_url=tracking_url,
             start_date=payload.start_date,
@@ -410,14 +414,16 @@ class CampaignService:
             cp_res = await db.execute(select(Coupon.code).where(Coupon.id == campaign.coupon_id))
             coupon_code = cp_res.scalar_one_or_none()
 
-        inf_res = await db.execute(select(Influencer.handle).where(Influencer.id == campaign.influencer_id))
-        inf_handle = inf_res.scalar_one_or_none()
+        inf_handle = None
+        if campaign.influencer_id:
+            inf_res = await db.execute(select(Influencer.handle).where(Influencer.id == campaign.influencer_id))
+            inf_handle = inf_res.scalar_one_or_none()
 
         return CampaignResponse(
             id=campaign.id,
             company_id=campaign.company_id,
             influencer_id=campaign.influencer_id,
-            influencer_handle=inf_handle or "Influencer",
+            influencer_handle=inf_handle or "Store Promo",
             coupon_id=campaign.coupon_id,
             coupon_code=coupon_code or campaign.tracking_code,
             name=campaign.name,
@@ -429,6 +435,7 @@ class CampaignService:
             commission_value=campaign.commission_value,
             tracking_code=campaign.tracking_code,
             tracking_url=campaign.tracking_url,
+            budget=campaign.budget or 0,
             start_date=campaign.start_date,
             end_date=campaign.end_date,
             is_active=campaign.is_active,

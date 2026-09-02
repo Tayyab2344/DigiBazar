@@ -76,8 +76,8 @@ class Campaign(Base):
     company_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("companies.id", ondelete="CASCADE"), index=True, nullable=False
     )
-    influencer_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("influencers.id", ondelete="CASCADE"), index=True, nullable=False
+    influencer_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("influencers.id", ondelete="CASCADE"), index=True, nullable=True
     )
     coupon_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("coupons.id", ondelete="SET NULL"), index=True, nullable=True
@@ -105,6 +105,7 @@ class Campaign(Base):
         default=CommissionType.PERCENTAGE,
     )
     commission_value: Mapped[int] = mapped_column(Integer, nullable=False, default=0)  # % or fixed cents
+    budget: Mapped[int] = mapped_column(Integer, default=0, nullable=False)  # cents
 
     tracking_code: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     tracking_url: Mapped[str] = mapped_column(String(255), nullable=False)

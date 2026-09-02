@@ -1,25 +1,36 @@
 import uuid
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from typing import Any
 from app.models.enums import DiscountType, DiscountScope, CommissionType, CampaignStatus, AttributionStatus
 
 
 class CampaignCreateRequest(BaseModel):
-    influencer_id: uuid.UUID
+    influencer_id: Optional[uuid.UUID] = None
     name: str = Field(..., min_length=2, max_length=255)
     description: Optional[str] = Field(None, max_length=500)
     discount_type: DiscountType = DiscountType.PERCENTAGE
-    discount_value: int = Field(..., ge=0)  # % or cents
+    discount_value: int = Field(15, ge=0)  # % or cents
     scope: DiscountScope = DiscountScope.STORE
     commission_type: CommissionType = CommissionType.PERCENTAGE
-    commission_value: int = Field(..., ge=0)  # % e.g. 5 or fixed cents e.g. 425
+    commission_value: int = Field(10, ge=0)  # % e.g. 10
+    commission_rate: Optional[int] = None
     coupon_code: Optional[str] = Field(None, max_length=50)
+    budget: Optional[int] = Field(0, ge=0)
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     is_active: bool = True
     product_ids: Optional[List[uuid.UUID]] = Field(default_factory=list)
     category_ids: Optional[List[uuid.UUID]] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def handle_commission_aliases(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "commission_rate" in data and ("commission_value" not in data or data.get("commission_value") is None):
+                data["commission_value"] = data["commission_rate"]
+        return data
 
 
 class CampaignUpdateRequest(BaseModel):
@@ -30,6 +41,7 @@ class CampaignUpdateRequest(BaseModel):
     scope: Optional[DiscountScope] = None
     commission_type: Optional[CommissionType] = None
     commission_value: Optional[int] = Field(None, ge=0)
+    budget: Optional[int] = Field(None, ge=0)
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     is_active: Optional[bool] = None
@@ -42,7 +54,7 @@ class CampaignResponse(BaseModel):
 
     id: uuid.UUID
     company_id: uuid.UUID
-    influencer_id: uuid.UUID
+    influencer_id: Optional[uuid.UUID] = None
     influencer_handle: Optional[str] = None
     coupon_id: Optional[uuid.UUID] = None
     coupon_code: Optional[str] = None
@@ -55,6 +67,7 @@ class CampaignResponse(BaseModel):
     commission_value: int
     tracking_code: str
     tracking_url: str
+    budget: int = 0
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     is_active: bool

@@ -4,12 +4,13 @@ import React, { useState, useEffect } from "react";
 import { CompanyShell } from "@/components/company/CompanyShell";
 import { companyApi } from "@/lib/api/company";
 import type { CompanyCampaignRead } from "@/types/company";
-import { Sparkles, Plus, X, DollarSign, ShoppingBag, Percent, TrendingUp } from "lucide-react";
+import { Sparkles, Plus, X, DollarSign, ShoppingBag, Percent, TrendingUp, AlertCircle } from "lucide-react";
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<CompanyCampaignRead[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Form State
   const [name, setName] = useState("");
@@ -35,21 +36,28 @@ export default function CampaignsPage() {
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return alert("Campaign name is required.");
+    if (!name.trim()) {
+      setFormError("Campaign name is required.");
+      return;
+    }
+    setFormError(null);
 
     try {
       const budgetCents = Math.round(budgetPKR * 100);
       await companyApi.createCampaign({
-        name,
+        name: name.trim(),
         coupon_code: couponCode.trim().toUpperCase(),
-        commission_rate: commissionRate,
+        commission_value: commissionRate,
+        discount_value: 15,
         budget: budgetCents,
       });
       setModalOpen(false);
       setName("");
+      setFormError(null);
       loadCampaigns();
-    } catch (err) {
-      alert("Failed to create campaign.");
+    } catch (err: any) {
+      const msg = err?.detail || err?.message || "Failed to create campaign. Please verify the code or details.";
+      setFormError(msg);
     }
   };
 
@@ -131,6 +139,12 @@ export default function CampaignsPage() {
             </div>
 
             <form onSubmit={handleCreateCampaign} className="p-6 space-y-4 text-xs">
+              {formError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-800 text-xs">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <p className="flex-1 font-medium">{formError}</p>
+                </div>
+              )}
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Campaign Name</label>
                 <input
