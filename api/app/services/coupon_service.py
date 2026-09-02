@@ -339,13 +339,15 @@ class CouponService:
             )
 
         # Calculate discount
+        is_capped = False
         if coupon.discount_type == DiscountType.PERCENTAGE:
             calc_discount = (eligible_subtotal * coupon.discount_value) // 100
         else:  # FIXED or FIXED_AMOUNT
             calc_discount = min(coupon.discount_value, eligible_subtotal)
 
-        if coupon.maximum_discount_amount > 0:
-            calc_discount = min(calc_discount, coupon.maximum_discount_amount)
+        if coupon.maximum_discount_amount > 0 and calc_discount > coupon.maximum_discount_amount:
+            calc_discount = coupon.maximum_discount_amount
+            is_capped = True
 
         calc_discount = max(0, min(calc_discount, eligible_subtotal))
 
@@ -363,9 +365,14 @@ class CouponService:
 
         final_subtotal = max(0, payload.order_subtotal - calc_discount)
 
+        if is_capped:
+            msg = f"Coupon applied! (Discount capped at maximum limit of Rs. {coupon.maximum_discount_amount / 100:.0f})"
+        else:
+            msg = "Coupon applied successfully."
+
         return CouponValidationResponse(
             valid=True,
-            message="Coupon applied successfully.",
+            message=msg,
             coupon_id=coupon.id,
             code=coupon.code,
             discount_type=coupon.discount_type,
@@ -373,6 +380,8 @@ class CouponService:
             scope=coupon.scope,
             total_discount=calc_discount,
             final_subtotal=final_subtotal,
+            is_capped=is_capped,
+            max_discount_cap=coupon.maximum_discount_amount if is_capped else None,
             item_breakdown=item_breakdowns,
         )
 

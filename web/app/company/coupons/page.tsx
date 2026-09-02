@@ -332,8 +332,17 @@ export default function VendorCouponsPage() {
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-4 font-extrabold text-slate-900">
-                        {c.discount_type === "PERCENTAGE" ? `${c.discount_value}% OFF` : formatPKR(c.discount_value)}
+                      <td className="py-3.5 px-4">
+                        <span className="font-extrabold text-slate-900 block">
+                          {c.discount_type === "PERCENTAGE" ? `${c.discount_value}% OFF` : formatPKR(c.discount_value)}
+                        </span>
+                        {c.maximum_discount_amount > 0 ? (
+                          <span className="text-[10px] font-bold text-amber-700 block">
+                            Max Cap: {formatPKR(c.maximum_discount_amount)}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 block font-normal">Uncapped</span>
+                        )}
                       </td>
 
                       <td className="py-3.5 px-4 font-medium text-slate-600">

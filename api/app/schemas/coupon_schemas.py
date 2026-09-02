@@ -110,4 +110,6 @@ class CouponValidationResponse(BaseModel):
     scope: Optional[DiscountScope] = None
     total_discount: int = 0  # cents
     final_subtotal: int = 0  # cents
+    is_capped: bool = False
+    max_discount_cap: Optional[int] = None
     item_breakdown: List[ItemDiscountBreakdown] = Field(default_factory=list)

@@ -56,6 +56,8 @@ export default function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
     discountCents: number;
+    message?: string;
+    isCapped?: boolean;
   } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
@@ -120,6 +122,8 @@ export default function CheckoutPage() {
         setAppliedCoupon({
           code: res.code || couponCodeInput.trim().toUpperCase(),
           discountCents: res.total_discount,
+          message: res.message,
+          isCapped: (res as any).is_capped,
         });
         setCouponCodeInput("");
       } else {
@@ -631,23 +635,30 @@ export default function CheckoutPage() {
                     </label>
 
                     {appliedCoupon ? (
-                      <div className="flex items-center justify-between p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-emerald-800 uppercase px-2 py-0.5 bg-emerald-100 rounded-md">
-                            {appliedCoupon.code}
-                          </span>
-                          <span className="text-emerald-700 font-semibold">
-                            Saved {formatPKR(appliedCoupon.discountCents)}
-                          </span>
+                      <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-emerald-800 uppercase px-2 py-0.5 bg-emerald-100 rounded-md">
+                              {appliedCoupon.code}
+                            </span>
+                            <span className="text-emerald-700 font-semibold">
+                              Saved {formatPKR(appliedCoupon.discountCents)}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRemoveCoupon}
+                            className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                            title="Remove Coupon"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={handleRemoveCoupon}
-                          className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                          title="Remove Coupon"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                        {appliedCoupon.isCapped && appliedCoupon.message && (
+                          <p className="text-[10px] text-amber-800 font-medium pt-0.5">
+                            ⚠️ {appliedCoupon.message}
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <div className="flex gap-2">
