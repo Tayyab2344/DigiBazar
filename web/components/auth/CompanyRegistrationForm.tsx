@@ -150,7 +150,7 @@ export const CompanyRegistrationForm: React.FC = () => {
         {/* SECTION 1: Company Information */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
-            <Building2 className="w-4 h-4 text-blue-600" />
+            <Building2 className="w-4 h-4 text-zinc-900" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
               Company Information
             </h3>
@@ -216,7 +216,7 @@ export const CompanyRegistrationForm: React.FC = () => {
         {/* SECTION 2: Business Address */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
-            <MapPin className="w-4 h-4 text-blue-600" />
+            <MapPin className="w-4 h-4 text-zinc-900" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
               Business Address
             </h3>
@@ -294,7 +294,7 @@ export const CompanyRegistrationForm: React.FC = () => {
         {/* SECTION 3: Account Owner */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
-            <UserCheck className="w-4 h-4 text-blue-600" />
+            <UserCheck className="w-4 h-4 text-zinc-900" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
               Account Owner Details
             </h3>
@@ -349,7 +349,7 @@ export const CompanyRegistrationForm: React.FC = () => {
         {/* SECTION 4: Security */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
-            <Lock className="w-4 h-4 text-blue-600" />
+            <Lock className="w-4 h-4 text-zinc-900" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
               Security Credentials
             </h3>
@@ -385,11 +385,11 @@ export const CompanyRegistrationForm: React.FC = () => {
               type="checkbox"
               checked={formData.terms_accepted}
               onChange={(e) => handleChange("terms_accepted", e.target.checked)}
-              className="mt-0.5 w-4 h-4 rounded-sm border-slate-300 text-blue-600 focus:ring-blue-500"
+              className="mt-0.5 w-4 h-4 rounded-sm border-slate-300 text-black focus:ring-black"
             />
             <span>
               I agree to the digiBazar Vendor Partner{" "}
-              <a href="/terms" className="text-blue-600 hover:underline">
+              <a href="/terms" className="text-zinc-900 font-medium hover:underline">
                 Terms of Service
               </a>{" "}
               and Merchant Policies.

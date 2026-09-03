@@ -14,7 +14,7 @@ export const AuthFooter: React.FC<AuthFooterProps> = ({ mode = "login" }) => {
             Don&apos;t have an account?{" "}
             <Link
               href="/register"
-              className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+              className="font-bold text-zinc-900 hover:text-black underline hover:no-underline"
             >
               Create customer account
             </Link>
@@ -23,7 +23,7 @@ export const AuthFooter: React.FC<AuthFooterProps> = ({ mode = "login" }) => {
             Are you a business?{" "}
             <Link
               href="/register/company"
-              className="font-semibold text-slate-800 hover:text-blue-600 hover:underline"
+              className="font-semibold text-slate-800 hover:text-black hover:underline"
             >
               Register your company
             </Link>
@@ -37,7 +37,7 @@ export const AuthFooter: React.FC<AuthFooterProps> = ({ mode = "login" }) => {
             Already have an account?{" "}
             <Link
               href="/login"
-              className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+              className="font-bold text-zinc-900 hover:text-black underline hover:no-underline"
             >
               Sign in
             </Link>
@@ -46,7 +46,7 @@ export const AuthFooter: React.FC<AuthFooterProps> = ({ mode = "login" }) => {
             Are you a business?{" "}
             <Link
               href="/register/company"
-              className="font-semibold text-slate-800 hover:text-blue-600 hover:underline"
+              className="font-semibold text-slate-800 hover:text-black hover:underline"
             >
               Register your company
             </Link>
@@ -60,7 +60,7 @@ export const AuthFooter: React.FC<AuthFooterProps> = ({ mode = "login" }) => {
             Already have an account?{" "}
             <Link
               href="/login"
-              className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+              className="font-bold text-zinc-900 hover:text-black underline hover:no-underline"
             >
               Sign in
             </Link>
@@ -69,7 +69,7 @@ export const AuthFooter: React.FC<AuthFooterProps> = ({ mode = "login" }) => {
             Want to shop on digiBazar?{" "}
             <Link
               href="/register"
-              className="font-semibold text-slate-800 hover:text-blue-600 hover:underline"
+              className="font-semibold text-slate-800 hover:text-black hover:underline"
             >
               Create a customer account
             </Link>
@@ -82,7 +82,7 @@ export const AuthFooter: React.FC<AuthFooterProps> = ({ mode = "login" }) => {
           Remember your password?{" "}
           <Link
             href="/login"
-            className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+            className="font-bold text-zinc-900 hover:text-black underline hover:no-underline"
           >
             Sign in
           </Link>

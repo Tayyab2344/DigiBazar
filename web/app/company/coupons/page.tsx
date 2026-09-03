@@ -119,10 +119,18 @@ export default function VendorCouponsPage() {
     loadData();
   }, []);
 
-  const copyToClipboard = (text: string, identifier: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedCode(identifier);
-    setTimeout(() => setCopiedCode(null), 2500);
+  const copyToClipboard = (code: string, id: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(id);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const copyShareLink = (code: string, id: string) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://digibazar.ranatayyab.dev";
+    const shareUrl = `${origin}/c/${code}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopiedCode(`link-${id}`);
+    setTimeout(() => setCopiedCode(null), 2000);
   };
 
   const handleCreateCoupon = async (e: React.FormEvent) => {
@@ -300,16 +308,23 @@ export default function VendorCouponsPage() {
                   coupons.map((c) => (
                     <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <span className="font-mono font-extrabold text-slate-900 text-sm bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
                             {c.code}
                           </span>
                           <button
                             onClick={() => copyToClipboard(c.code, c.id)}
-                            className="p-1 text-slate-400 hover:text-slate-600 transition-colors"
-                            title="Copy Code"
+                            className="p-1 text-slate-400 hover:text-slate-700 transition-colors"
+                            title="Copy Promo Code"
                           >
                             {copiedCode === c.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            onClick={() => copyShareLink(c.code, c.id)}
+                            className="p-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-md transition-colors"
+                            title="Copy Shareable Link"
+                          >
+                            {copiedCode === `link-${c.id}` ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <ExternalLink className="w-3.5 h-3.5" />}
                           </button>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-1 font-medium">{c.name}</p>

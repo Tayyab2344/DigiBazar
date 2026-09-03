@@ -81,6 +81,16 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
+  // Check if a shareable discount link auto-applied a coupon code
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedAutoCoupon = localStorage.getItem("digibazar_auto_coupon");
+      if (savedAutoCoupon && !appliedCoupon && !couponCodeInput) {
+        setCouponCodeInput(savedAutoCoupon);
+      }
+    }
+  }, []);
+
   const formatCardNumber = (val: string) => {
     const v = val.replace(/\s+/g, "").replace(/[^0-9]/gi, "").slice(0, 16);
     const parts = [];

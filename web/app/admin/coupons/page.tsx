@@ -168,7 +168,8 @@ export default function AdminCouponsPage() {
         onClose={() => setIsCreateOpen(false)}
         title="Create Platform Coupon"
         size="md"
-              <form onSubmit={handleCreate} className="space-y-4">
+      >
+        <form onSubmit={handleCreate} className="space-y-4">
           <div>
             <label className="flex items-center text-xs font-semibold text-[var(--text-secondary)] mb-1">
               <span>Coupon Code *</span>

@@ -16,7 +16,7 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
   return (
     <div className={`mb-6 space-y-1.5 ${className}`}>
       {badge && (
-        <span className="inline-block px-2.5 py-0.5 mb-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100 uppercase tracking-wider">
+        <span className="inline-block px-2.5 py-0.5 mb-1 rounded-full text-[11px] font-semibold bg-zinc-100 text-zinc-900 border border-zinc-200 uppercase tracking-wider">
           {badge}
         </span>
       )}

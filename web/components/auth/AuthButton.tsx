@@ -24,11 +24,11 @@ export const AuthButton: React.FC<AuthButtonProps> = ({
 
   const variantClasses = {
     primary:
-      "bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-2xs focus:ring-blue-500 border border-transparent",
+      "bg-black hover:bg-zinc-800 active:bg-zinc-900 text-white shadow-2xs focus:ring-black border border-transparent",
     secondary:
       "bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white shadow-2xs focus:ring-slate-800 border border-transparent",
     outline:
-      "bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 focus:ring-blue-500 shadow-2xs",
+      "bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 focus:ring-black shadow-2xs",
   };
 
   return (

@@ -58,7 +58,7 @@ export const AuthInput: React.FC<AuthInputProps> = ({
           } ${
             error
               ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-              : "border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              : "border-slate-300 hover:border-slate-400 focus:border-black focus:ring-2 focus:ring-zinc-200"
           } ${
             disabled ? "bg-slate-100 text-slate-500 cursor-not-allowed opacity-75" : ""
           } ${className}`}

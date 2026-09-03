@@ -97,7 +97,7 @@ export const LoginForm: React.FC = () => {
           <div className="flex justify-end pt-0.5">
             <Link
               href="/forgot-password"
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+              className="text-xs font-semibold text-zinc-800 hover:text-black hover:underline transition-colors"
             >
               Forgot password?
             </Link>
@@ -134,9 +134,9 @@ export const LoginForm: React.FC = () => {
               setEmail("contact@techstore-official.com");
               setPassword("CompanyPass123!");
             }}
-            className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors flex items-center justify-center gap-1.5"
+            className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-zinc-100 text-zinc-900 hover:bg-zinc-200 border border-zinc-200 transition-colors flex items-center justify-center gap-1.5"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+            <span className="w-1.5 h-1.5 rounded-full bg-zinc-900" />
             Company
           </button>
         </div>

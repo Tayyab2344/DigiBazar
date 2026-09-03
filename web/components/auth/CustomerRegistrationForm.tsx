@@ -110,7 +110,7 @@ export const CustomerRegistrationForm: React.FC = () => {
         {/* SECTION 1: Personal Information */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
-            <UserIcon className="w-4 h-4 text-blue-600" />
+            <UserIcon className="w-4 h-4 text-zinc-900" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
               Personal Information
             </h3>
@@ -164,7 +164,7 @@ export const CustomerRegistrationForm: React.FC = () => {
         {/* SECTION 2: Delivery Address */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
-            <MapPin className="w-4 h-4 text-blue-600" />
+            <MapPin className="w-4 h-4 text-zinc-900" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
               Delivery Address
             </h3>
@@ -242,7 +242,7 @@ export const CustomerRegistrationForm: React.FC = () => {
         {/* SECTION 3: Account Security */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
-            <Lock className="w-4 h-4 text-blue-600" />
+            <Lock className="w-4 h-4 text-zinc-900" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
               Account Security
             </h3>
@@ -278,15 +278,15 @@ export const CustomerRegistrationForm: React.FC = () => {
               type="checkbox"
               checked={formData.terms_accepted}
               onChange={(e) => handleChange("terms_accepted", e.target.checked)}
-              className="mt-0.5 w-4 h-4 rounded-sm border-slate-300 text-blue-600 focus:ring-blue-500"
+              className="mt-0.5 w-4 h-4 rounded-sm border-slate-300 text-black focus:ring-black"
             />
             <span>
               I agree to the digiBazar{" "}
-              <a href="/terms" className="text-blue-600 hover:underline">
+              <a href="/terms" className="text-zinc-900 font-medium hover:underline">
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="/privacy" className="text-blue-600 hover:underline">
+              <a href="/privacy" className="text-zinc-900 font-medium hover:underline">
                 Privacy Policy
               </a>
               .
